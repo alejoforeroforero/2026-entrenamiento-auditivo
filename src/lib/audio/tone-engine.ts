@@ -1,14 +1,16 @@
 'use client';
 
-import * as Tone from 'tone';
 import { Chord, Note, RhythmPattern } from '@/types/music';
 
 type AudioCallback = (beat: number) => void;
 
+type ToneModule = typeof import('tone');
+
 class ToneEngine {
-  private synth: Tone.Sampler | null = null;
-  private rhythmSynth: Tone.MembraneSynth | null = null;
-  private hiHatSynth: Tone.MetalSynth | null = null;
+  private Tone: ToneModule | null = null;
+  private synth: InstanceType<ToneModule['Sampler']> | null = null;
+  private rhythmSynth: InstanceType<ToneModule['MembraneSynth']> | null = null;
+  private hiHatSynth: InstanceType<ToneModule['MetalSynth']> | null = null;
   private isInitialized = false;
   private onBeatCallback: AudioCallback | null = null;
   private currentBeat = 0;
@@ -17,11 +19,13 @@ class ToneEngine {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    await Tone.start();
+    // Dynamically import Tone.js only when needed
+    this.Tone = await import('tone');
+    await this.Tone.start();
 
     // Piano sampler using Salamander Grand Piano samples
     await new Promise<void>((resolve) => {
-      this.synth = new Tone.Sampler({
+      this.synth = new this.Tone!.Sampler({
         urls: {
           A1: 'A1.mp3',
           A2: 'A2.mp3',
@@ -47,7 +51,7 @@ class ToneEngine {
     });
 
     // Membrane synth for drum sounds
-    this.rhythmSynth = new Tone.MembraneSynth({
+    this.rhythmSynth = new this.Tone!.MembraneSynth({
       pitchDecay: 0.05,
       octaves: 4,
       oscillator: {
@@ -63,7 +67,7 @@ class ToneEngine {
     this.rhythmSynth.volume.value = -3;
 
     // Metal synth for hi-hat/guira sounds
-    this.hiHatSynth = new Tone.MetalSynth({
+    this.hiHatSynth = new this.Tone!.MetalSynth({
       envelope: {
         attack: 0.001,
         decay: 0.1,
@@ -84,11 +88,13 @@ class ToneEngine {
   }
 
   setTempo(bpm: number): void {
-    Tone.getTransport().bpm.value = bpm;
+    if (!this.Tone) return;
+    this.Tone.getTransport().bpm.value = bpm;
   }
 
   getTempo(): number {
-    return Tone.getTransport().bpm.value;
+    if (!this.Tone) return 100;
+    return this.Tone.getTransport().bpm.value;
   }
 
   // Play a single chord
@@ -109,14 +115,15 @@ class ToneEngine {
     tempo: number = 100,
     onBeat?: AudioCallback
   ): void {
-    if (!this.synth) return;
+    if (!this.synth || !this.Tone) return;
 
     this.stop();
     this.setTempo(tempo);
     this.onBeatCallback = onBeat || null;
     this.currentBeat = 0;
 
-    const transport = Tone.getTransport();
+    const transport = this.Tone.getTransport();
+    const Tone = this.Tone;
 
     chords.forEach((chord, index) => {
       const eventId = transport.schedule((time) => {
@@ -151,17 +158,17 @@ class ToneEngine {
     loops: number = 2,
     onBeat?: AudioCallback
   ): void {
-    if (!this.rhythmSynth || !this.hiHatSynth) return;
+    if (!this.rhythmSynth || !this.hiHatSynth || !this.Tone) return;
 
     this.stop();
     this.setTempo(pattern.bpm);
     this.onBeatCallback = onBeat || null;
     this.currentBeat = 0;
 
-    const transport = Tone.getTransport();
+    const transport = this.Tone.getTransport();
+    const Tone = this.Tone;
     const [beats] = pattern.timeSignature;
     const stepsPerBeat = 4;
-    const totalSteps = beats * stepsPerBeat;
 
     for (let loop = 0; loop < loops; loop++) {
       pattern.instruments.forEach(({ instrument, pattern: steps }) => {
@@ -213,7 +220,8 @@ class ToneEngine {
 
   // Stop playback
   stop(): void {
-    const transport = Tone.getTransport();
+    if (!this.Tone) return;
+    const transport = this.Tone.getTransport();
     transport.stop();
     transport.position = 0;
 
@@ -227,7 +235,8 @@ class ToneEngine {
 
   // Check if playing
   isPlaying(): boolean {
-    return Tone.getTransport().state === 'started';
+    if (!this.Tone) return false;
+    return this.Tone.getTransport().state === 'started';
   }
 
   getCurrentBeat(): number {

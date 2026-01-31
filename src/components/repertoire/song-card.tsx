@@ -5,7 +5,31 @@ import { Music, Calendar, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Song } from '@/types/music';
+
+const GENRE_LABELS: Record<string, string> = {
+  salsa: 'Salsa',
+  cumbia: 'Cumbia',
+  vallenato: 'Vallenato',
+  bambuco: 'Bambuco',
+};
+
+interface Progression {
+  id: string;
+  name: string;
+}
+
+interface Song {
+  id: string;
+  title: string;
+  artist: string;
+  genreId: string;
+  key: string;
+  mode: 'major' | 'minor';
+  year?: number | null;
+  description?: string | null;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  progression?: Progression | null;
+}
 
 interface SongCardProps {
   song: Song;
@@ -14,6 +38,7 @@ interface SongCardProps {
 }
 
 const GENRE_COLORS: Record<string, string> = {
+  salsa: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
   cumbia: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
   vallenato: 'bg-green-500/10 text-green-600 border-green-500/20',
   bambuco: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
@@ -26,6 +51,8 @@ const DIFFICULTY_LABELS = {
 };
 
 export function SongCard({ song, onClick, className }: SongCardProps) {
+  const genreLabel = GENRE_LABELS[song.genreId] || song.genreId;
+
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -46,24 +73,24 @@ export function SongCard({ song, onClick, className }: SongCardProps) {
             </div>
             <Badge
               variant="outline"
-              className={cn('capitalize', GENRE_COLORS[song.genre])}
+              className={cn('capitalize', GENRE_COLORS[song.genreId])}
             >
-              {song.genre}
+              {genreLabel}
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {/* Progression */}
-            <div className="flex items-center gap-2">
-              <Music className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">
-                <span className="text-muted-foreground">Progresión:</span>{' '}
-                <span className="font-medium">{song.progression.join('-')}</span>
-              </span>
-            </div>
+            {song.progression && (
+              <div className="flex items-center gap-2">
+                <Music className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm">
+                  <span className="text-muted-foreground">Progresión:</span>{' '}
+                  <span className="font-medium">{song.progression.name}</span>
+                </span>
+              </div>
+            )}
 
-            {/* Key */}
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 flex items-center justify-center text-muted-foreground text-xs font-bold">
                 ♯
@@ -76,7 +103,6 @@ export function SongCard({ song, onClick, className }: SongCardProps) {
               </span>
             </div>
 
-            {/* Year and difficulty */}
             <div className="flex items-center justify-between">
               {song.year && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -107,7 +133,6 @@ export function SongCard({ song, onClick, className }: SongCardProps) {
               </div>
             </div>
 
-            {/* Description */}
             {song.description && (
               <p className="text-sm text-muted-foreground pt-2 border-t">
                 {song.description}

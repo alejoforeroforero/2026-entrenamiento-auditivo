@@ -1,22 +1,20 @@
-import { Song, Genre } from '@/types/music';
+import { Song } from '@/types/music';
 
-// Songs are now managed via admin panel and stored in localStorage
 export const songs: Song[] = [];
 
-export const getSongsByGenre = (genre: Genre): Song[] => {
-  return songs.filter((s) => s.genre === genre);
+export const getSongsByGenre = (genreId: string): Song[] => {
+  return songs.filter((s) => s.genreId === genreId);
 };
 
 export const getSongById = (id: string): Song | undefined => {
   return songs.find((s) => s.id === id);
 };
 
-export const getSongsByProgression = (progression: string[]): Song[] => {
-  const progStr = progression.join('-');
-  return songs.filter((s) => s.progression.join('-') === progStr);
+export const getSongsByProgression = (progressionId: string): Song[] => {
+  return songs.filter((s) => s.progressionId === progressionId);
 };
 
-export const getRandomSong = (genre?: Genre): Song => {
-  const filtered = genre ? getSongsByGenre(genre) : songs;
+export const getRandomSong = (genreId?: string): Song => {
+  const filtered = genreId ? getSongsByGenre(genreId) : songs;
   return filtered[Math.floor(Math.random() * filtered.length)];
 };

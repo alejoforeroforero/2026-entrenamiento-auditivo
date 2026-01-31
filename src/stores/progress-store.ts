@@ -22,6 +22,7 @@ const initialProgress: UserProgress = {
     'melodic-dictation': { total: 0, correct: 0 },
   },
   exercisesByGenre: {
+    salsa: { total: 0, correct: 0 },
     cumbia: { total: 0, correct: 0 },
     vallenato: { total: 0, correct: 0 },
     bambuco: { total: 0, correct: 0 },

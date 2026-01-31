@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**ea** (Entrenamiento Auditivo) is a web application for teaching Colombian music theory through interactive ear training exercises. It focuses on chord progressions, rhythm patterns, and melodic dictation for genres like cumbia, vallenato, and bambuco.
+**ea** (Entrenamiento Auditivo) is a web application for teaching Latin music theory through interactive ear training exercises. It focuses on chord progressions, rhythm patterns, and melodic dictation for genres like Salsa, Rock en español, cumbia, vallenato, and bambuco.
 
 ## Development Commands
 
@@ -68,3 +68,4 @@ Use the `useTone` hook for React integration - it handles dynamic imports to avo
 - Stores use kebab-case with `-store` suffix
 - All music types defined in `/types/music.ts`
 - Data files export typed constants (progressions, rhythms, songs)
+- Use musical icons in the UI when appropriate

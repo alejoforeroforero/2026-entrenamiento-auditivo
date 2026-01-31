@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, use } from 'react';
 import { Play, RotateCcw, SkipForward, Check, X, Piano, Music, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTone } from '@/hooks/useTone';
-import { useProgressionStore, StoredProgression } from '@/stores/progression-store';
 import { buildProgression, getRandomKey } from '@/lib/music';
-import { Chord, NoteName } from '@/types/music';
-import { RepertoireEntry } from '@/types/admin';
-
-const REPERTOIRE_STORAGE_KEY = 'ea-repertoire';
+import { Chord, NoteName, RomanNumeral } from '@/types/music';
+import {
+  getRandomSongAction,
+  getRandomProgressionAction,
+  getProgressionByIdAction,
+} from './actions';
 
 const majorChords = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 const minorChords = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii°'];
@@ -48,46 +48,43 @@ interface YTPlayer {
   getPlayerState: () => number;
 }
 
-function loadRepertoireFromStorage(): RepertoireEntry[] {
-  if (typeof window === 'undefined') return [];
-  const stored = localStorage.getItem(REPERTOIRE_STORAGE_KEY);
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored);
-  } catch {
-    return [];
-  }
+interface Progression {
+  id: string;
+  name: string;
+  numerals: string[];
+  description: string | null;
 }
 
-function getRandomItem<T>(array: T[]): T | null {
-  if (array.length === 0) return null;
-  return array[Math.floor(Math.random() * array.length)];
+interface Song {
+  id: string;
+  title: string;
+  artist: string;
+  key: string;
+  mode: 'major' | 'minor';
+  youtubeId: string | null;
+  startTime: number | null;
+  duration: number | null;
+  progressionId: string;
+  progression: Progression;
 }
 
-// Piano Mode Component
-function PianoMode() {
-  const { progressions } = useProgressionStore();
-  const [currentProgression, setCurrentProgression] = useState<StoredProgression | null>(null);
+function PianoMode({ genre }: { genre: string }) {
+  const [currentProgression, setCurrentProgression] = useState<Progression | null>(null);
   const [currentKey, setCurrentKey] = useState<NoteName>('C');
   const [chords, setChords] = useState<Chord[]>([]);
   const [selectedChords, setSelectedChords] = useState<string[]>([]);
   const [hasChecked, setHasChecked] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const { initialize, isReady, playProgression, stop, isPlaying } = useTone();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const generateNewProgression = useCallback(() => {
-    const progression = getRandomItem(progressions);
+  const generateNewProgression = useCallback(async () => {
+    const progression = await getRandomProgressionAction(genre);
     if (!progression) return;
 
     const key = getRandomKey();
     const mode = progression.numerals[0] === 'i' || progression.numerals[0] === 'iv' ? 'minor' : 'major';
-    const builtChords = buildProgression(key, progression.numerals, mode);
+    const builtChords = buildProgression(key, progression.numerals as RomanNumeral[], mode);
 
     setCurrentProgression(progression);
     setCurrentKey(key);
@@ -95,7 +92,7 @@ function PianoMode() {
     setSelectedChords([]);
     setHasChecked(false);
     setIsCorrect(false);
-  }, [progressions]);
+  }, [genre]);
 
   const handlePlay = useCallback(async () => {
     if (!isReady) {
@@ -108,12 +105,12 @@ function PianoMode() {
     }
 
     if (!currentProgression || chords.length === 0) {
-      const progression = getRandomItem(progressions);
+      const progression = await getRandomProgressionAction(genre);
       if (!progression) return;
 
       const key = getRandomKey();
       const mode = progression.numerals[0] === 'i' || progression.numerals[0] === 'iv' ? 'minor' : 'major';
-      const builtChords = buildProgression(key, progression.numerals, mode);
+      const builtChords = buildProgression(key, progression.numerals as RomanNumeral[], mode);
 
       setCurrentProgression(progression);
       setCurrentKey(key);
@@ -126,7 +123,7 @@ function PianoMode() {
     } else {
       playProgression(chords, 60);
     }
-  }, [isReady, initialize, isPlaying, stop, currentProgression, chords, playProgression, progressions]);
+  }, [genre, isReady, initialize, isPlaying, stop, currentProgression, chords, playProgression]);
 
   const handleReplay = useCallback(async () => {
     if (chords.length === 0) return;
@@ -149,7 +146,7 @@ function PianoMode() {
 
   const handleChordSelect = (chord: string) => {
     if (hasChecked) return;
-    if (currentProgression && selectedChords.length < currentProgression.numerals.length) {
+    if (selectedChords.length < 8) {
       setSelectedChords([...selectedChords, chord]);
     }
   };
@@ -160,13 +157,14 @@ function PianoMode() {
   };
 
   const handleCheck = () => {
-    if (!currentProgression || selectedChords.length !== currentProgression.numerals.length) return;
+    if (!currentProgression || selectedChords.length === 0) return;
 
-    const correct = selectedChords.every(
+    const correctLength = selectedChords.length === currentProgression.numerals.length;
+    const correctChords = correctLength && selectedChords.every(
       (chord, index) => chord.toLowerCase() === currentProgression.numerals[index].toLowerCase()
     );
 
-    setIsCorrect(correct);
+    setIsCorrect(correctChords);
     setHasChecked(true);
   };
 
@@ -176,34 +174,16 @@ function PianoMode() {
     setIsCorrect(false);
   };
 
-  if (!mounted) {
-    return <p className="text-muted-foreground text-center py-8">Cargando...</p>;
-  }
-
-  if (progressions.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground mb-4">
-          No hay progresiones registradas para practicar.
-        </p>
-        <Button variant="outline" asChild>
-          <a href="/admin">Agregar progresiones en Admin</a>
-        </Button>
-      </div>
-    );
-  }
-
   const progressionLength = currentProgression?.numerals.length || 4;
 
   return (
-    <div className="space-y-6">
-      {/* Player controls */}
-      <Card className="p-6">
-        <div className="flex items-center justify-center gap-3">
+    <div className="space-y-8">
+      <div className="p-8 rounded-3xl bg-card/50 border border-border/50">
+        <div className="flex items-center justify-center gap-4">
           <Button
             variant="outline"
             size="lg"
-            className="gap-2"
+            className="gap-2.5 h-12 px-5 rounded-xl bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border"
             onClick={handleReplay}
             disabled={chords.length === 0}
           >
@@ -212,35 +192,39 @@ function PianoMode() {
           </Button>
           <Button
             size="lg"
-            className="gap-2"
+            className="gap-2.5 h-14 px-8 rounded-xl text-base glow hover:glow transition-all duration-300"
             onClick={handlePlay}
           >
-            <Play className="w-4 h-4" />
+            <Play className="w-5 h-5" />
             {currentProgression ? (isPlaying ? 'Detener' : 'Reproducir') : 'Comenzar'}
           </Button>
           <Button
             variant="outline"
             size="lg"
-            className="gap-2"
+            className="gap-2.5 h-12 px-5 rounded-xl bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border"
             onClick={handleNext}
           >
             <SkipForward className="w-4 h-4" />
             Siguiente
           </Button>
         </div>
-      </Card>
+      </div>
 
-      {/* Selected chords display */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Tu respuesta ({selectedChords.length}/{progressionLength})
-        </h3>
-        <div className="flex gap-2 min-h-[60px]">
-          {Array.from({ length: progressionLength }).map((_, index) => {
+      <div className="space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-sm font-medium text-muted-foreground">
+            Tu respuesta ({selectedChords.length}/{progressionLength})
+          </h3>
+          <p className="text-xs text-muted-foreground/70">
+            No todas las casillas deben llenarse
+          </p>
+        </div>
+        <div className="flex gap-3 min-h-[72px] flex-wrap">
+          {Array.from({ length: 8 }).map((_, index) => {
             const chord = selectedChords[index];
+            const isWithinProgression = index < progressionLength;
             const isCorrectChord = hasChecked && currentProgression &&
               chord?.toLowerCase() === currentProgression.numerals[index]?.toLowerCase();
-            const isWrongChord = hasChecked && chord && !isCorrectChord;
 
             return (
               <button
@@ -248,15 +232,17 @@ function PianoMode() {
                 onClick={() => chord && handleRemoveChord(index)}
                 disabled={!chord || hasChecked}
                 className={`
-                  w-14 h-14 rounded-xl font-semibold text-lg
-                  transition-all duration-200 border-2 border-dashed
+                  w-14 h-14 rounded-2xl font-semibold text-base
+                  transition-all duration-200 border-2
                   ${chord
                     ? hasChecked
                       ? isCorrectChord
-                        ? 'bg-green-500 text-white border-green-500 border-solid'
-                        : 'bg-red-500 text-white border-red-500 border-solid'
-                      : 'bg-primary text-primary-foreground border-primary border-solid cursor-pointer hover:opacity-80'
-                    : 'border-muted-foreground/30 text-muted-foreground/50'
+                        ? 'bg-success/20 text-success border-success/50 glow-sm'
+                        : 'bg-destructive/20 text-destructive border-destructive/50'
+                      : 'bg-primary/20 text-primary border-primary/50 glow-sm cursor-pointer hover:scale-105 active:scale-95'
+                    : isWithinProgression
+                      ? 'border-dashed border-border/50 text-muted-foreground/40 bg-card/30'
+                      : 'border-dashed border-border/30 text-muted-foreground/20 bg-card/10'
                   }
                 `}
               >
@@ -267,13 +253,13 @@ function PianoMode() {
         </div>
 
         {hasChecked && !isCorrect && currentProgression && (
-          <div className="pt-2">
-            <p className="text-sm text-muted-foreground mb-2">Respuesta correcta:</p>
-            <div className="flex gap-2">
+          <div className="pt-3">
+            <p className="text-sm text-muted-foreground mb-3">Respuesta correcta:</p>
+            <div className="flex gap-3">
               {currentProgression.numerals.map((numeral, index) => (
                 <div
                   key={index}
-                  className="w-14 h-14 rounded-xl font-semibold text-lg bg-green-500/20 text-green-600 border-2 border-green-500 flex items-center justify-center"
+                  className="w-14 h-14 rounded-2xl font-semibold text-base bg-success/10 text-success border-2 border-success/30 flex items-center justify-center"
                 >
                   {numeral}
                 </div>
@@ -283,12 +269,11 @@ function PianoMode() {
         )}
       </div>
 
-      {/* Action buttons */}
-      <div className="flex gap-3">
+      <div className="flex gap-4">
         <Button
           onClick={handleCheck}
-          disabled={selectedChords.length !== progressionLength || hasChecked}
-          className="gap-2"
+          disabled={selectedChords.length === 0 || selectedChords.length > 8 || hasChecked}
+          className="gap-2.5 h-11 px-6 rounded-xl"
         >
           <Check className="w-4 h-4" />
           Verificar
@@ -297,42 +282,40 @@ function PianoMode() {
           variant="outline"
           onClick={handleClear}
           disabled={selectedChords.length === 0}
-          className="gap-2"
+          className="gap-2.5 h-11 px-6 rounded-xl bg-secondary/50 border-border/50"
         >
           <X className="w-4 h-4" />
           Borrar
         </Button>
       </div>
 
-      {/* Feedback */}
       {hasChecked && (
-        <Card className={`p-4 ${isCorrect ? 'bg-green-500/10 border-green-500' : 'bg-red-500/10 border-red-500'}`}>
-          <p className={`font-medium ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+        <div className={`p-5 rounded-2xl border ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30'}`}>
+          <p className={`font-semibold ${isCorrect ? 'text-success' : 'text-destructive'}`}>
             {isCorrect ? '¡Correcto!' : 'Incorrecto'}
           </p>
           {currentProgression && (
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1.5">
               Progresión: {currentProgression.name} en {currentKey}
             </p>
           )}
-        </Card>
+        </div>
       )}
 
-      {/* Chord selection */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         <h3 className="text-sm font-medium text-muted-foreground">
           Selecciona los acordes en orden
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Mayores</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Mayores</p>
+            <div className="flex flex-wrap gap-2.5">
               {majorChords.map((chord) => (
                 <button
                   key={chord}
                   onClick={() => handleChordSelect(chord)}
-                  disabled={hasChecked || selectedChords.length >= progressionLength}
-                  className="w-14 h-14 rounded-xl font-semibold text-lg transition-all duration-200 bg-secondary hover:bg-secondary/80 text-secondary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={hasChecked || selectedChords.length >= 8}
+                  className="w-14 h-14 rounded-xl font-semibold text-base transition-all duration-150 bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   {chord}
                 </button>
@@ -340,14 +323,14 @@ function PianoMode() {
             </div>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Menores</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Menores</p>
+            <div className="flex flex-wrap gap-2.5">
               {minorChords.map((chord) => (
                 <button
                   key={chord}
                   onClick={() => handleChordSelect(chord)}
-                  disabled={hasChecked || selectedChords.length >= progressionLength}
-                  className="w-14 h-14 rounded-xl font-semibold text-lg transition-all duration-200 bg-secondary hover:bg-secondary/80 text-secondary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={hasChecked || selectedChords.length >= 8}
+                  className="w-14 h-14 rounded-xl font-semibold text-base transition-all duration-150 bg-secondary/30 border border-border/40 hover:border-accent/50 hover:bg-accent/10 hover:text-accent text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   {chord}
                 </button>
@@ -360,15 +343,12 @@ function PianoMode() {
   );
 }
 
-// Repertoire Mode Component
-function RepertoireMode() {
-  const { progressions } = useProgressionStore();
-  const [repertoire, setRepertoire] = useState<RepertoireEntry[]>([]);
-  const [currentSong, setCurrentSong] = useState<RepertoireEntry | null>(null);
+function RepertoireMode({ genre }: { genre: string }) {
+  const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [currentProgression, setCurrentProgression] = useState<Progression | null>(null);
   const [selectedChords, setSelectedChords] = useState<string[]>([]);
   const [hasChecked, setHasChecked] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
@@ -378,23 +358,14 @@ function RepertoireMode() {
   const playerId = 'practice-player';
 
   useEffect(() => {
-    setMounted(true);
-    setRepertoire(loadRepertoireFromStorage());
-  }, []);
-
-  // Load YouTube API
-  useEffect(() => {
-    if (!mounted) return;
-
     const loadYouTubeAPI = () => {
-      if (window.YT && window.YT.Player) {
-        return;
-      }
+      if (window.YT && window.YT.Player) return;
 
       if (!document.getElementById('youtube-api')) {
         const tag = document.createElement('script');
         tag.id = 'youtube-api';
         tag.src = 'https://www.youtube.com/iframe_api';
+        tag.async = true;
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
       }
@@ -403,35 +374,26 @@ function RepertoireMode() {
     loadYouTubeAPI();
 
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
+      if (timerRef.current) clearTimeout(timerRef.current);
       playerRef.current?.destroy();
     };
-  }, [mounted]);
+  }, []);
 
-  const initPlayer = useCallback((song: RepertoireEntry) => {
-    if (!window.YT || !containerRef.current) return;
+  const initPlayer = useCallback((song: Song) => {
+    if (!window.YT || !containerRef.current || !song.youtubeId) return;
 
-    // Destroy existing player
     if (playerRef.current) {
       playerRef.current.destroy();
       playerRef.current = null;
       setIsPlayerReady(false);
     }
 
-    // Clear existing player div
     const existingDiv = document.getElementById(playerId);
-    if (existingDiv) {
-      existingDiv.remove();
-    }
+    if (existingDiv) existingDiv.remove();
 
-    // Create new player div
     const playerDiv = document.createElement('div');
     playerDiv.id = playerId;
     containerRef.current.appendChild(playerDiv);
-
-    const startTime = song.startTime ?? 0;
 
     new window.YT.Player(playerId, {
       videoId: song.youtubeId,
@@ -441,7 +403,7 @@ function RepertoireMode() {
         modestbranding: 1,
         rel: 0,
         showinfo: 0,
-        start: Math.floor(startTime),
+        start: Math.floor(song.startTime || 0),
       },
       events: {
         onReady: (event) => {
@@ -462,37 +424,33 @@ function RepertoireMode() {
     });
   }, []);
 
-  const selectRandomSong = useCallback(() => {
-    const song = getRandomItem(repertoire);
+  const selectRandomSong = useCallback(async () => {
+    const song = await getRandomSongAction(genre);
     if (!song) return;
 
-    setCurrentSong(song);
+    setCurrentSong(song as Song);
+    setCurrentProgression(song.progression);
     setSelectedChords([]);
     setHasChecked(false);
     setIsCorrect(false);
     setIsPlayerReady(false);
 
-    // Wait for YT API and init player
     const checkAndInit = () => {
       if (window.YT && window.YT.Player) {
-        initPlayer(song);
+        initPlayer(song as Song);
       } else {
         setTimeout(checkAndInit, 100);
       }
     };
     checkAndInit();
-  }, [repertoire, initPlayer]);
+  }, [genre, initPlayer]);
+
+  useEffect(() => {
+    selectRandomSong();
+  }, [selectRandomSong]);
 
   const handlePlay = useCallback(() => {
-    if (!currentSong) {
-      selectRandomSong();
-      return;
-    }
-
-    if (!playerRef.current || !isPlayerReady) return;
-
-    const startTime = currentSong.startTime ?? 0;
-    const duration = currentSong.duration ?? 10;
+    if (!currentSong || !playerRef.current || !isPlayerReady) return;
 
     if (isPlaying) {
       playerRef.current.pauseVideo();
@@ -501,15 +459,15 @@ function RepertoireMode() {
         timerRef.current = null;
       }
     } else {
-      playerRef.current.seekTo(startTime, true);
+      playerRef.current.seekTo(currentSong.startTime || 0, true);
       playerRef.current.playVideo();
 
       timerRef.current = setTimeout(() => {
         playerRef.current?.pauseVideo();
         setIsPlaying(false);
-      }, duration * 1000);
+      }, (currentSong.duration || 15) * 1000);
     }
-  }, [currentSong, isPlaying, isPlayerReady, selectRandomSong]);
+  }, [currentSong, isPlaying, isPlayerReady]);
 
   const handleNext = useCallback(() => {
     if (timerRef.current) {
@@ -522,7 +480,7 @@ function RepertoireMode() {
 
   const handleChordSelect = (chord: string) => {
     if (hasChecked || !currentSong) return;
-    if (selectedChords.length < currentSong.progression.length) {
+    if (selectedChords.length < 8) {
       setSelectedChords([...selectedChords, chord]);
     }
   };
@@ -533,13 +491,14 @@ function RepertoireMode() {
   };
 
   const handleCheck = () => {
-    if (!currentSong || selectedChords.length !== currentSong.progression.length) return;
+    if (!currentSong || !currentProgression || selectedChords.length === 0) return;
 
-    const correct = selectedChords.every(
-      (chord, index) => chord.toLowerCase() === currentSong.progression[index].toLowerCase()
+    const correctLength = selectedChords.length === currentProgression.numerals.length;
+    const correctChords = correctLength && selectedChords.every(
+      (chord, index) => chord.toLowerCase() === currentProgression.numerals[index].toLowerCase()
     );
 
-    setIsCorrect(correct);
+    setIsCorrect(correctChords);
     setHasChecked(true);
   };
 
@@ -549,87 +508,73 @@ function RepertoireMode() {
     setIsCorrect(false);
   };
 
-  if (!mounted) {
-    return <p className="text-muted-foreground text-center py-8">Cargando...</p>;
-  }
-
-  if (repertoire.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground mb-4">
-          No hay canciones en el repertorio para practicar.
-        </p>
-        <Button variant="outline" asChild>
-          <a href="/admin">Agregar canciones en Admin</a>
-        </Button>
-      </div>
-    );
-  }
-
-  const progressionLength = currentSong?.progression.length || 4;
+  const progressionLength = currentProgression?.numerals.length || 4;
 
   return (
-    <div className="space-y-6">
-      {/* Video player */}
-      <Card className="p-4">
-        <div className="flex items-center gap-4">
-          {/* Small video */}
+    <div className="space-y-8">
+      <div className="p-5 rounded-3xl bg-card/50 border border-border/50">
+        <div className="flex items-center gap-5">
           <div
             ref={containerRef}
-            className="w-40 h-24 bg-black relative rounded overflow-hidden shrink-0"
+            className="w-40 aspect-video bg-secondary/30 relative rounded-xl overflow-hidden shrink-0 border border-border/30 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
           >
             {!isPlayerReady && (
-              <div className="absolute inset-0 flex items-center justify-center text-white text-xs">
-                {currentSong ? '...' : 'Sin canción'}
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
+                ...
               </div>
             )}
           </div>
 
-          {/* Song info and controls */}
           <div className="flex-1 min-w-0">
             {currentSong ? (
               <>
-                <p className="font-medium truncate">{currentSong.title}</p>
-                <p className="text-sm text-muted-foreground truncate">{currentSong.artist}</p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="font-semibold text-lg truncate">{currentSong.title}</p>
+                <p className="text-sm text-muted-foreground truncate mt-0.5">{currentSong.artist}</p>
+                <p className="text-xs text-muted-foreground mt-2">
                   {currentSong.key} {currentSong.mode === 'major' ? 'Mayor' : 'menor'}
                 </p>
               </>
             ) : (
-              <p className="text-muted-foreground">Presiona comenzar para seleccionar una canción</p>
+              <p className="text-muted-foreground">Cargando...</p>
             )}
           </div>
 
-          {/* Controls */}
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-3 shrink-0">
             <Button
-              size="sm"
+              size="lg"
+              className="h-12 w-12 p-0 rounded-xl glow"
               onClick={handlePlay}
-              disabled={currentSong !== null && !isPlayerReady}
+              disabled={!isPlayerReady}
             >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
             </Button>
             <Button
-              size="sm"
+              size="lg"
               variant="outline"
+              className="h-12 w-12 p-0 rounded-xl bg-secondary/50 border-border/50"
               onClick={handleNext}
             >
-              <SkipForward className="w-4 h-4" />
+              <SkipForward className="w-5 h-5" />
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
 
-      {/* Selected chords display */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Tu respuesta ({selectedChords.length}/{progressionLength})
-        </h3>
-        <div className="flex gap-2 min-h-[60px]">
-          {Array.from({ length: progressionLength }).map((_, index) => {
+      <div className="space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-sm font-medium text-muted-foreground">
+            Tu respuesta ({selectedChords.length}/{progressionLength})
+          </h3>
+          <p className="text-xs text-muted-foreground/70">
+            No todas las casillas deben llenarse
+          </p>
+        </div>
+        <div className="flex gap-3 min-h-[72px] flex-wrap">
+          {Array.from({ length: 8 }).map((_, index) => {
             const chord = selectedChords[index];
-            const isCorrectChord = hasChecked && currentSong &&
-              chord?.toLowerCase() === currentSong.progression[index]?.toLowerCase();
+            const isWithinProgression = index < progressionLength;
+            const isCorrectChord = hasChecked && currentProgression &&
+              chord?.toLowerCase() === currentProgression.numerals[index]?.toLowerCase();
 
             return (
               <button
@@ -637,15 +582,17 @@ function RepertoireMode() {
                 onClick={() => chord && handleRemoveChord(index)}
                 disabled={!chord || hasChecked}
                 className={`
-                  w-14 h-14 rounded-xl font-semibold text-lg
-                  transition-all duration-200 border-2 border-dashed
+                  w-14 h-14 rounded-2xl font-semibold text-base
+                  transition-all duration-200 border-2
                   ${chord
                     ? hasChecked
                       ? isCorrectChord
-                        ? 'bg-green-500 text-white border-green-500 border-solid'
-                        : 'bg-red-500 text-white border-red-500 border-solid'
-                      : 'bg-primary text-primary-foreground border-primary border-solid cursor-pointer hover:opacity-80'
-                    : 'border-muted-foreground/30 text-muted-foreground/50'
+                        ? 'bg-success/20 text-success border-success/50 glow-sm'
+                        : 'bg-destructive/20 text-destructive border-destructive/50'
+                      : 'bg-primary/20 text-primary border-primary/50 glow-sm cursor-pointer hover:scale-105 active:scale-95'
+                    : isWithinProgression
+                      ? 'border-dashed border-border/50 text-muted-foreground/40 bg-card/30'
+                      : 'border-dashed border-border/30 text-muted-foreground/20 bg-card/10'
                   }
                 `}
               >
@@ -655,14 +602,14 @@ function RepertoireMode() {
           })}
         </div>
 
-        {hasChecked && !isCorrect && currentSong && (
-          <div className="pt-2">
-            <p className="text-sm text-muted-foreground mb-2">Respuesta correcta:</p>
-            <div className="flex gap-2">
-              {currentSong.progression.map((numeral, index) => (
+        {hasChecked && !isCorrect && currentProgression && (
+          <div className="pt-3">
+            <p className="text-sm text-muted-foreground mb-3">Respuesta correcta:</p>
+            <div className="flex gap-3">
+              {currentProgression.numerals.map((numeral, index) => (
                 <div
                   key={index}
-                  className="w-14 h-14 rounded-xl font-semibold text-lg bg-green-500/20 text-green-600 border-2 border-green-500 flex items-center justify-center"
+                  className="w-14 h-14 rounded-2xl font-semibold text-base bg-success/10 text-success border-2 border-success/30 flex items-center justify-center"
                 >
                   {numeral}
                 </div>
@@ -672,12 +619,11 @@ function RepertoireMode() {
         )}
       </div>
 
-      {/* Action buttons */}
-      <div className="flex gap-3">
+      <div className="flex gap-4">
         <Button
           onClick={handleCheck}
-          disabled={!currentSong || selectedChords.length !== progressionLength || hasChecked}
-          className="gap-2"
+          disabled={!currentSong || selectedChords.length === 0 || selectedChords.length > 8 || hasChecked}
+          className="gap-2.5 h-11 px-6 rounded-xl"
         >
           <Check className="w-4 h-4" />
           Verificar
@@ -686,40 +632,38 @@ function RepertoireMode() {
           variant="outline"
           onClick={handleClear}
           disabled={selectedChords.length === 0}
-          className="gap-2"
+          className="gap-2.5 h-11 px-6 rounded-xl bg-secondary/50 border-border/50"
         >
           <X className="w-4 h-4" />
           Borrar
         </Button>
       </div>
 
-      {/* Feedback */}
       {hasChecked && currentSong && (
-        <Card className={`p-4 ${isCorrect ? 'bg-green-500/10 border-green-500' : 'bg-red-500/10 border-red-500'}`}>
-          <p className={`font-medium ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+        <div className={`p-5 rounded-2xl border ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30'}`}>
+          <p className={`font-semibold ${isCorrect ? 'text-success' : 'text-destructive'}`}>
             {isCorrect ? '¡Correcto!' : 'Incorrecto'}
           </p>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1.5">
             {currentSong.title} - {currentSong.artist}
           </p>
-        </Card>
+        </div>
       )}
 
-      {/* Chord selection */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         <h3 className="text-sm font-medium text-muted-foreground">
           Selecciona los acordes en orden
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Mayores</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Mayores</p>
+            <div className="flex flex-wrap gap-2.5">
               {majorChords.map((chord) => (
                 <button
                   key={chord}
                   onClick={() => handleChordSelect(chord)}
-                  disabled={!currentSong || hasChecked || selectedChords.length >= progressionLength}
-                  className="w-14 h-14 rounded-xl font-semibold text-lg transition-all duration-200 bg-secondary hover:bg-secondary/80 text-secondary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!currentSong || hasChecked || selectedChords.length >= 8}
+                  className="w-14 h-14 rounded-xl font-semibold text-base transition-all duration-150 bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   {chord}
                 </button>
@@ -727,14 +671,14 @@ function RepertoireMode() {
             </div>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Menores</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Menores</p>
+            <div className="flex flex-wrap gap-2.5">
               {minorChords.map((chord) => (
                 <button
                   key={chord}
                   onClick={() => handleChordSelect(chord)}
-                  disabled={!currentSong || hasChecked || selectedChords.length >= progressionLength}
-                  className="w-14 h-14 rounded-xl font-semibold text-lg transition-all duration-200 bg-secondary hover:bg-secondary/80 text-secondary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!currentSong || hasChecked || selectedChords.length >= 8}
+                  className="w-14 h-14 rounded-xl font-semibold text-base transition-all duration-150 bg-secondary/30 border border-border/40 hover:border-accent/50 hover:bg-accent/10 hover:text-accent text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   {chord}
                 </button>
@@ -747,36 +691,48 @@ function RepertoireMode() {
   );
 }
 
-export default function PracticarPage() {
+export default function PracticarPage({
+  params,
+}: {
+  params: Promise<{ genre: string }>;
+}) {
+  const { genre } = use(params);
+
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-10">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight">
           Practicar
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-2 text-lg">
           Escucha y selecciona los acordes en orden
         </p>
       </div>
 
-      <Tabs defaultValue="piano" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="piano" className="gap-2">
+      <Tabs defaultValue="piano" className="space-y-8">
+        <TabsList className="inline-flex h-14 p-1.5 bg-card/50 border border-border/50 rounded-2xl">
+          <TabsTrigger
+            value="piano"
+            className="gap-2.5 px-6 py-3 rounded-xl data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:glow-sm"
+          >
             <Piano className="w-4 h-4" />
             Acordes Piano
           </TabsTrigger>
-          <TabsTrigger value="repertoire" className="gap-2">
+          <TabsTrigger
+            value="repertoire"
+            className="gap-2.5 px-6 py-3 rounded-xl data-[state=active]:bg-accent/15 data-[state=active]:text-accent"
+          >
             <Music className="w-4 h-4" />
             Repertorio
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="piano">
-          <PianoMode />
+          <PianoMode genre={genre} />
         </TabsContent>
 
         <TabsContent value="repertoire">
-          <RepertoireMode />
+          <RepertoireMode genre={genre} />
         </TabsContent>
       </Tabs>
     </div>

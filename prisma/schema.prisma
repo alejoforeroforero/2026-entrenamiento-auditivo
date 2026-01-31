@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Difficulty {
+  beginner
+  intermediate
+  advanced
+}
+
+enum Mode {
+  major
+  minor
+}
+
+model Genre {
+  id        String   @id
+  name      String
+  label     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  songs Song[]
+
+  @@map("genres")
+}
+
+model Progression {
+  id          String   @id @default(cuid())
+  name        String
+  numerals    String[]
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  songs Song[]
+
+  @@index([name])
+  @@map("progressions")
+}
+
+model Song {
+  id          String     @id @default(cuid())
+  title       String
+  artist      String
+  key         String
+  mode        Mode
+  year        Int?
+  description String?
+  difficulty  Difficulty
+  youtubeId   String?
+  startTime   Int?
+  duration    Int?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  genreId       String
+  progressionId String
+
+  genre       Genre       @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  progression Progression @relation(fields: [progressionId], references: [id], onDelete: Cascade)
+
+  @@index([genreId])
+  @@index([progressionId])
+  @@map("songs")
+}

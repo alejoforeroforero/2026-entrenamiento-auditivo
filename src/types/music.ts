@@ -1,5 +1,5 @@
 // Genres
-export type Genre = 'cumbia' | 'vallenato' | 'bambuco';
+export type Genre = 'salsa' | 'cumbia' | 'vallenato' | 'bambuco';
 
 // Musical notes
 export type NoteName = 'C' | 'C#' | 'Db' | 'D' | 'D#' | 'Eb' | 'E' | 'F' | 'F#' | 'Gb' | 'G' | 'G#' | 'Ab' | 'A' | 'A#' | 'Bb' | 'B';
@@ -23,7 +23,6 @@ export interface Progression {
   id: string;
   name: string;
   numerals: RomanNumeral[];
-  genre: Genre;
   description?: string;
 }
 
@@ -62,13 +61,16 @@ export interface Song {
   id: string;
   title: string;
   artist: string;
-  genre: Genre;
-  progression: RomanNumeral[];
+  genreId: string;
+  progressionId: string;
   key: NoteName;
   mode: 'major' | 'minor';
   year?: number;
   description?: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
+  youtubeId?: string;
+  startTime?: number;
+  duration?: number;
 }
 
 // Exercise types
