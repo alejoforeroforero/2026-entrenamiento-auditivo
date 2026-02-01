@@ -30,16 +30,18 @@ model Genre {
 }
 
 model Progression {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   name        String
   numerals    String[]
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  difficulty  Difficulty @default(beginner)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   songs Song[]
 
   @@index([name])
+  @@index([difficulty])
   @@map("progressions")
 }
 

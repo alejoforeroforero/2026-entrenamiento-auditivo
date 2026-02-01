@@ -15,12 +15,15 @@ export async function getProgressionsForGenre(genreId: string) {
         some: { genreId },
       },
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      difficulty: true,
       _count: {
         select: { songs: true },
       },
     },
-    orderBy: { name: 'asc' },
+    orderBy: [{ difficulty: 'asc' }, { name: 'asc' }],
   });
 }
 
