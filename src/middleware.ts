@@ -4,9 +4,11 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isSecure = request.url.startsWith('https://');
   const token = await getToken({
     req: request,
-    secret: process.env.AUTH_SECRET
+    secret: process.env.AUTH_SECRET,
+    salt: isSecure ? '__Secure-authjs.session-token' : 'authjs.session-token'
   });
   const isLoggedIn = !!token;
 
