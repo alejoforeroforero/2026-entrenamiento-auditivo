@@ -22,6 +22,12 @@ export default async function HomePage() {
     })
   );
 
+  // Sort: active genres (with content) first, then inactive, both alphabetically
+  const sortedGenres = [
+    ...genresWithStats.filter((g) => g.hasContent),
+    ...genresWithStats.filter((g) => !g.hasContent),
+  ];
+
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-16">
       <div className="text-center mb-12 md:mb-20">
@@ -42,7 +48,7 @@ export default async function HomePage() {
       </div>
 
       <div className="grid gap-3 md:gap-4 md:grid-cols-2">
-        {genresWithStats.map((genre) => {
+        {sortedGenres.map((genre) => {
           if (!genre.hasContent) {
             return (
               <div
@@ -94,7 +100,7 @@ export default async function HomePage() {
       <div className="mt-12 md:mt-20 text-center">
         <div className="inline-flex items-center gap-2 md:gap-3 px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-secondary/50 border border-border/50 text-xs md:text-sm text-muted-foreground">
           <Music2 className="w-4 h-4 text-primary" />
-          <span>Salsa • Cumbia • Vallenato • Bambuco</span>
+          <span>Salsa • Rock • Cumbia • Vallenato • Bambuco</span>
         </div>
       </div>
     </div>

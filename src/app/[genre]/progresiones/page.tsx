@@ -1,6 +1,6 @@
 'use client';
 
-import { Music } from 'lucide-react';
+import { Music, Menu } from 'lucide-react';
 
 export default function ProgresionesPage() {
   return (
@@ -9,8 +9,15 @@ export default function ProgresionesPage() {
         <Music className="h-10 w-10 text-accent" />
       </div>
       <h2 className="text-2xl font-semibold mb-3">Selecciona una progresión</h2>
-      <p className="text-muted-foreground max-w-sm text-lg">
+      <p className="text-muted-foreground max-w-sm text-lg hidden md:block">
         Elige una progresión del catálogo para ver ejemplos de canciones que la utilizan.
+      </p>
+      <p className="text-muted-foreground max-w-sm text-lg md:hidden">
+        Toca el botón{' '}
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground align-middle mx-1">
+          <Menu className="w-4 h-4" />
+        </span>{' '}
+        para ver el catálogo de progresiones.
       </p>
     </div>
   );
