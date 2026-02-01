@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, use } from 'react';
-import { Play, RotateCcw, SkipForward, Check, X, Piano, Music, Pause } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Play, RotateCcw, SkipForward, Check, X, Piano, Music, Pause, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTone } from '@/hooks/useTone';
@@ -699,6 +700,11 @@ export default function PracticarPage({
   params: Promise<{ genre: string }>;
 }) {
   const { genre } = use(params);
+  const router = useRouter();
+
+  const handleQuizClick = () => {
+    router.push(`/${genre}/quiz`);
+  };
 
   return (
     <div className="max-w-2xl space-y-6 md:space-y-10">
@@ -718,7 +724,7 @@ export default function PracticarPage({
             className="flex-1 sm:flex-none gap-1.5 md:gap-2.5 px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:glow-sm text-sm md:text-base"
           >
             <Piano className="w-4 h-4" />
-            <span className="hidden xs:inline">Acordes</span> Piano
+            Piano
           </TabsTrigger>
           <TabsTrigger
             value="repertoire"
@@ -727,6 +733,13 @@ export default function PracticarPage({
             <Music className="w-4 h-4" />
             Repertorio
           </TabsTrigger>
+          <button
+            onClick={handleQuizClick}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 md:gap-2.5 px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl text-sm md:text-base text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 transition-colors"
+          >
+            <Trophy className="w-4 h-4" />
+            Quiz
+          </button>
         </TabsList>
 
         <TabsContent value="piano">

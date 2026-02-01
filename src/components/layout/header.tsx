@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Headphones, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
+import { UserMenu } from '@/components/auth/user-menu';
 
 const GENRE_LABELS: Record<string, string> = {
   salsa: 'Salsa',
@@ -81,6 +82,7 @@ export function Header() {
 
         <div className="flex items-center gap-2 md:gap-5">
           <ThemeToggle />
+          <UserMenu />
 
           <Link
             href={ctaHref}
