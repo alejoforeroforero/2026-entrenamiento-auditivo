@@ -6,11 +6,18 @@ import { prisma } from '@/lib/db';
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [Google],
+  session: { strategy: 'jwt' },
   callbacks: {
-    session({ session, user }) {
+    jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    session({ session, token }) {
       const allowedEmail = process.env.ALLOWED_EMAIL;
-      session.user.id = user.id;
-      session.user.isAdmin = allowedEmail ? user.email === allowedEmail : false;
+      session.user.id = token.id as string;
+      session.user.isAdmin = allowedEmail ? session.user.email === allowedEmail : false;
       return session;
     },
   },
