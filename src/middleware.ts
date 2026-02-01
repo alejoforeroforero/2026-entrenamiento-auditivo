@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getToken } from 'next-auth/jwt';
+import type { NextRequest } from 'next/server';
 
-export default auth((req) => {
-  const { pathname } = req.nextUrl;
-  const isLoggedIn = !!req.auth;
-  const userEmail = req.auth?.user?.email;
-  const allowedEmail = process.env.ALLOWED_EMAIL;
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = await getToken({ req: request });
+  const isLoggedIn = !!token;
 
   if (pathname.startsWith('/perfil')) {
     if (!isLoggedIn) {
-      const loginUrl = new URL('/login', req.url);
+      const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -17,18 +17,19 @@ export default auth((req) => {
 
   if (pathname.startsWith('/admin')) {
     if (!isLoggedIn) {
-      const loginUrl = new URL('/login', req.url);
+      const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
     }
 
-    if (userEmail !== allowedEmail) {
-      return NextResponse.redirect(new URL('/', req.url));
+    const allowedEmail = process.env.ALLOWED_EMAIL;
+    if (token?.email !== allowedEmail) {
+      return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ['/perfil/:path*', '/admin/:path*'],

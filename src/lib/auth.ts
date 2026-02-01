@@ -13,9 +13,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.isAdmin = allowedEmail ? user.email === allowedEmail : false;
       return session;
     },
-    authorized({ auth }) {
-      return !!auth?.user;
-    },
   },
   pages: {
     signIn: '/login',
