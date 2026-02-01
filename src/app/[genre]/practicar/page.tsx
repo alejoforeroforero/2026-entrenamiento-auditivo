@@ -177,49 +177,49 @@ function PianoMode({ genre }: { genre: string }) {
   const progressionLength = currentProgression?.numerals.length || 4;
 
   return (
-    <div className="space-y-8">
-      <div className="p-8 rounded-3xl bg-card/50 border border-border/50">
-        <div className="flex items-center justify-center gap-4">
+    <div className="space-y-6 md:space-y-8">
+      <div className="p-4 md:p-8 rounded-2xl md:rounded-3xl bg-card/50 border border-border/50">
+        <div className="flex items-center justify-center gap-2 md:gap-4">
           <Button
             variant="outline"
             size="lg"
-            className="gap-2.5 h-12 px-5 rounded-xl bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border"
+            className="gap-1.5 md:gap-2.5 h-10 md:h-12 px-3 md:px-5 rounded-xl bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border text-sm md:text-base"
             onClick={handleReplay}
             disabled={chords.length === 0}
           >
             <RotateCcw className="w-4 h-4" />
-            Repetir
+            <span className="hidden sm:inline">Repetir</span>
           </Button>
           <Button
             size="lg"
-            className="gap-2.5 h-14 px-8 rounded-xl text-base glow hover:glow transition-all duration-300"
+            className="gap-1.5 md:gap-2.5 h-12 md:h-14 px-4 md:px-8 rounded-xl text-sm md:text-base glow hover:glow transition-all duration-300"
             onClick={handlePlay}
           >
-            <Play className="w-5 h-5" />
+            <Play className="w-4 h-4 md:w-5 md:h-5" />
             {currentProgression ? (isPlaying ? 'Detener' : 'Reproducir') : 'Comenzar'}
           </Button>
           <Button
             variant="outline"
             size="lg"
-            className="gap-2.5 h-12 px-5 rounded-xl bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border"
+            className="gap-1.5 md:gap-2.5 h-10 md:h-12 px-3 md:px-5 rounded-xl bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border text-sm md:text-base"
             onClick={handleNext}
           >
             <SkipForward className="w-4 h-4" />
-            Siguiente
+            <span className="hidden sm:inline">Siguiente</span>
           </Button>
         </div>
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between gap-2">
           <h3 className="text-sm font-medium text-muted-foreground">
             Tu respuesta ({selectedChords.length}/{progressionLength})
           </h3>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-xs text-muted-foreground/70 text-right">
             No todas las casillas deben llenarse
           </p>
         </div>
-        <div className="flex gap-3 min-h-[72px] flex-wrap">
+        <div className="flex gap-2 md:gap-3 min-h-[60px] md:min-h-[72px] flex-wrap">
           {Array.from({ length: 8 }).map((_, index) => {
             const chord = selectedChords[index];
             const isWithinProgression = index < progressionLength;
@@ -232,7 +232,7 @@ function PianoMode({ genre }: { genre: string }) {
                 onClick={() => chord && handleRemoveChord(index)}
                 disabled={!chord || hasChecked}
                 className={`
-                  w-14 h-14 rounded-2xl font-semibold text-base
+                  w-11 h-11 md:w-14 md:h-14 rounded-xl md:rounded-2xl font-semibold text-sm md:text-base
                   transition-all duration-200 border-2
                   ${chord
                     ? hasChecked
@@ -255,11 +255,11 @@ function PianoMode({ genre }: { genre: string }) {
         {hasChecked && !isCorrect && currentProgression && (
           <div className="pt-3">
             <p className="text-sm text-muted-foreground mb-3">Respuesta correcta:</p>
-            <div className="flex gap-3">
+            <div className="flex gap-2 md:gap-3 flex-wrap">
               {currentProgression.numerals.map((numeral, index) => (
                 <div
                   key={index}
-                  className="w-14 h-14 rounded-2xl font-semibold text-base bg-success/10 text-success border-2 border-success/30 flex items-center justify-center"
+                  className="w-11 h-11 md:w-14 md:h-14 rounded-xl md:rounded-2xl font-semibold text-sm md:text-base bg-success/10 text-success border-2 border-success/30 flex items-center justify-center"
                 >
                   {numeral}
                 </div>
@@ -269,11 +269,11 @@ function PianoMode({ genre }: { genre: string }) {
         )}
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-3 md:gap-4">
         <Button
           onClick={handleCheck}
           disabled={selectedChords.length === 0 || selectedChords.length > 8 || hasChecked}
-          className="gap-2.5 h-11 px-6 rounded-xl"
+          className="gap-2 md:gap-2.5 h-10 md:h-11 px-4 md:px-6 rounded-xl text-sm md:text-base"
         >
           <Check className="w-4 h-4" />
           Verificar
@@ -282,7 +282,7 @@ function PianoMode({ genre }: { genre: string }) {
           variant="outline"
           onClick={handleClear}
           disabled={selectedChords.length === 0}
-          className="gap-2.5 h-11 px-6 rounded-xl bg-secondary/50 border-border/50"
+          className="gap-2 md:gap-2.5 h-10 md:h-11 px-4 md:px-6 rounded-xl bg-secondary/50 border-border/50 text-sm md:text-base"
         >
           <X className="w-4 h-4" />
           Borrar
@@ -290,7 +290,7 @@ function PianoMode({ genre }: { genre: string }) {
       </div>
 
       {hasChecked && (
-        <div className={`p-5 rounded-2xl border ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30'}`}>
+        <div className={`p-4 md:p-5 rounded-xl md:rounded-2xl border ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30'}`}>
           <p className={`font-semibold ${isCorrect ? 'text-success' : 'text-destructive'}`}>
             {isCorrect ? '¡Correcto!' : 'Incorrecto'}
           </p>
@@ -302,20 +302,20 @@ function PianoMode({ genre }: { genre: string }) {
         </div>
       )}
 
-      <div className="space-y-5">
+      <div className="space-y-4 md:space-y-5">
         <h3 className="text-sm font-medium text-muted-foreground">
           Selecciona los acordes en orden
         </h3>
         <div className="space-y-4">
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Mayores</p>
-            <div className="flex flex-wrap gap-2.5">
+            <p className="text-xs font-medium text-muted-foreground mb-2 md:mb-3 uppercase tracking-wide">Mayores</p>
+            <div className="flex flex-wrap gap-2 md:gap-2.5">
               {majorChords.map((chord) => (
                 <button
                   key={chord}
                   onClick={() => handleChordSelect(chord)}
                   disabled={hasChecked || selectedChords.length >= 8}
-                  className="w-14 h-14 rounded-xl font-semibold text-base transition-all duration-150 bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                  className="w-11 h-11 md:w-14 md:h-14 rounded-lg md:rounded-xl font-semibold text-sm md:text-base transition-all duration-150 bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   {chord}
                 </button>
@@ -323,14 +323,14 @@ function PianoMode({ genre }: { genre: string }) {
             </div>
           </div>
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Menores</p>
-            <div className="flex flex-wrap gap-2.5">
+            <p className="text-xs font-medium text-muted-foreground mb-2 md:mb-3 uppercase tracking-wide">Menores</p>
+            <div className="flex flex-wrap gap-2 md:gap-2.5">
               {minorChords.map((chord) => (
                 <button
                   key={chord}
                   onClick={() => handleChordSelect(chord)}
                   disabled={hasChecked || selectedChords.length >= 8}
-                  className="w-14 h-14 rounded-xl font-semibold text-base transition-all duration-150 bg-secondary/30 border border-border/40 hover:border-accent/50 hover:bg-accent/10 hover:text-accent text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                  className="w-11 h-11 md:w-14 md:h-14 rounded-lg md:rounded-xl font-semibold text-sm md:text-base transition-all duration-150 bg-secondary/30 border border-border/40 hover:border-accent/50 hover:bg-accent/10 hover:text-accent text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   {chord}
                 </button>
@@ -511,12 +511,12 @@ function RepertoireMode({ genre }: { genre: string }) {
   const progressionLength = currentProgression?.numerals.length || 4;
 
   return (
-    <div className="space-y-8">
-      <div className="p-5 rounded-3xl bg-card/50 border border-border/50">
-        <div className="flex items-center gap-5">
+    <div className="space-y-6 md:space-y-8">
+      <div className="p-4 md:p-5 rounded-2xl md:rounded-3xl bg-card/50 border border-border/50">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
           <div
             ref={containerRef}
-            className="w-40 aspect-video bg-secondary/30 relative rounded-xl overflow-hidden shrink-0 border border-border/30 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
+            className="w-full sm:w-36 md:w-40 aspect-video bg-secondary/30 relative rounded-xl overflow-hidden shrink-0 border border-border/30 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
           >
             {!isPlayerReady && (
               <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
@@ -525,51 +525,53 @@ function RepertoireMode({ genre }: { genre: string }) {
             )}
           </div>
 
-          <div className="flex-1 min-w-0">
-            {currentSong ? (
-              <>
-                <p className="font-semibold text-lg truncate">{currentSong.title}</p>
-                <p className="text-sm text-muted-foreground truncate mt-0.5">{currentSong.artist}</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {currentSong.key} {currentSong.mode === 'major' ? 'Mayor' : 'menor'}
-                </p>
-              </>
-            ) : (
-              <p className="text-muted-foreground">Cargando...</p>
-            )}
-          </div>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex-1 min-w-0">
+              {currentSong ? (
+                <>
+                  <p className="font-semibold text-base md:text-lg truncate">{currentSong.title}</p>
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">{currentSong.artist}</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {currentSong.key} {currentSong.mode === 'major' ? 'Mayor' : 'menor'}
+                  </p>
+                </>
+              ) : (
+                <p className="text-muted-foreground">Cargando...</p>
+              )}
+            </div>
 
-          <div className="flex gap-3 shrink-0">
-            <Button
-              size="lg"
-              className="h-12 w-12 p-0 rounded-xl glow"
-              onClick={handlePlay}
-              disabled={!isPlayerReady}
-            >
-              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 w-12 p-0 rounded-xl bg-secondary/50 border-border/50"
-              onClick={handleNext}
-            >
-              <SkipForward className="w-5 h-5" />
-            </Button>
+            <div className="flex gap-2 md:gap-3 shrink-0">
+              <Button
+                size="lg"
+                className="h-10 w-10 md:h-12 md:w-12 p-0 rounded-xl glow"
+                onClick={handlePlay}
+                disabled={!isPlayerReady}
+              >
+                {isPlaying ? <Pause className="w-4 h-4 md:w-5 md:h-5" /> : <Play className="w-4 h-4 md:w-5 md:h-5" />}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-10 w-10 md:h-12 md:w-12 p-0 rounded-xl bg-secondary/50 border-border/50"
+                onClick={handleNext}
+              >
+                <SkipForward className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between gap-2">
           <h3 className="text-sm font-medium text-muted-foreground">
             Tu respuesta ({selectedChords.length}/{progressionLength})
           </h3>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-xs text-muted-foreground/70 text-right">
             No todas las casillas deben llenarse
           </p>
         </div>
-        <div className="flex gap-3 min-h-[72px] flex-wrap">
+        <div className="flex gap-2 md:gap-3 min-h-[60px] md:min-h-[72px] flex-wrap">
           {Array.from({ length: 8 }).map((_, index) => {
             const chord = selectedChords[index];
             const isWithinProgression = index < progressionLength;
@@ -582,7 +584,7 @@ function RepertoireMode({ genre }: { genre: string }) {
                 onClick={() => chord && handleRemoveChord(index)}
                 disabled={!chord || hasChecked}
                 className={`
-                  w-14 h-14 rounded-2xl font-semibold text-base
+                  w-11 h-11 md:w-14 md:h-14 rounded-xl md:rounded-2xl font-semibold text-sm md:text-base
                   transition-all duration-200 border-2
                   ${chord
                     ? hasChecked
@@ -605,11 +607,11 @@ function RepertoireMode({ genre }: { genre: string }) {
         {hasChecked && !isCorrect && currentProgression && (
           <div className="pt-3">
             <p className="text-sm text-muted-foreground mb-3">Respuesta correcta:</p>
-            <div className="flex gap-3">
+            <div className="flex gap-2 md:gap-3 flex-wrap">
               {currentProgression.numerals.map((numeral, index) => (
                 <div
                   key={index}
-                  className="w-14 h-14 rounded-2xl font-semibold text-base bg-success/10 text-success border-2 border-success/30 flex items-center justify-center"
+                  className="w-11 h-11 md:w-14 md:h-14 rounded-xl md:rounded-2xl font-semibold text-sm md:text-base bg-success/10 text-success border-2 border-success/30 flex items-center justify-center"
                 >
                   {numeral}
                 </div>
@@ -619,11 +621,11 @@ function RepertoireMode({ genre }: { genre: string }) {
         )}
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-3 md:gap-4">
         <Button
           onClick={handleCheck}
           disabled={!currentSong || selectedChords.length === 0 || selectedChords.length > 8 || hasChecked}
-          className="gap-2.5 h-11 px-6 rounded-xl"
+          className="gap-2 md:gap-2.5 h-10 md:h-11 px-4 md:px-6 rounded-xl text-sm md:text-base"
         >
           <Check className="w-4 h-4" />
           Verificar
@@ -632,7 +634,7 @@ function RepertoireMode({ genre }: { genre: string }) {
           variant="outline"
           onClick={handleClear}
           disabled={selectedChords.length === 0}
-          className="gap-2.5 h-11 px-6 rounded-xl bg-secondary/50 border-border/50"
+          className="gap-2 md:gap-2.5 h-10 md:h-11 px-4 md:px-6 rounded-xl bg-secondary/50 border-border/50 text-sm md:text-base"
         >
           <X className="w-4 h-4" />
           Borrar
@@ -640,7 +642,7 @@ function RepertoireMode({ genre }: { genre: string }) {
       </div>
 
       {hasChecked && currentSong && (
-        <div className={`p-5 rounded-2xl border ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30'}`}>
+        <div className={`p-4 md:p-5 rounded-xl md:rounded-2xl border ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30'}`}>
           <p className={`font-semibold ${isCorrect ? 'text-success' : 'text-destructive'}`}>
             {isCorrect ? '¡Correcto!' : 'Incorrecto'}
           </p>
@@ -650,20 +652,20 @@ function RepertoireMode({ genre }: { genre: string }) {
         </div>
       )}
 
-      <div className="space-y-5">
+      <div className="space-y-4 md:space-y-5">
         <h3 className="text-sm font-medium text-muted-foreground">
           Selecciona los acordes en orden
         </h3>
         <div className="space-y-4">
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Mayores</p>
-            <div className="flex flex-wrap gap-2.5">
+            <p className="text-xs font-medium text-muted-foreground mb-2 md:mb-3 uppercase tracking-wide">Mayores</p>
+            <div className="flex flex-wrap gap-2 md:gap-2.5">
               {majorChords.map((chord) => (
                 <button
                   key={chord}
                   onClick={() => handleChordSelect(chord)}
                   disabled={!currentSong || hasChecked || selectedChords.length >= 8}
-                  className="w-14 h-14 rounded-xl font-semibold text-base transition-all duration-150 bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                  className="w-11 h-11 md:w-14 md:h-14 rounded-lg md:rounded-xl font-semibold text-sm md:text-base transition-all duration-150 bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   {chord}
                 </button>
@@ -671,14 +673,14 @@ function RepertoireMode({ genre }: { genre: string }) {
             </div>
           </div>
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">Menores</p>
-            <div className="flex flex-wrap gap-2.5">
+            <p className="text-xs font-medium text-muted-foreground mb-2 md:mb-3 uppercase tracking-wide">Menores</p>
+            <div className="flex flex-wrap gap-2 md:gap-2.5">
               {minorChords.map((chord) => (
                 <button
                   key={chord}
                   onClick={() => handleChordSelect(chord)}
                   disabled={!currentSong || hasChecked || selectedChords.length >= 8}
-                  className="w-14 h-14 rounded-xl font-semibold text-base transition-all duration-150 bg-secondary/30 border border-border/40 hover:border-accent/50 hover:bg-accent/10 hover:text-accent text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                  className="w-11 h-11 md:w-14 md:h-14 rounded-lg md:rounded-xl font-semibold text-sm md:text-base transition-all duration-150 bg-secondary/30 border border-border/40 hover:border-accent/50 hover:bg-accent/10 hover:text-accent text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                 >
                   {chord}
                 </button>
@@ -699,28 +701,28 @@ export default function PracticarPage({
   const { genre } = use(params);
 
   return (
-    <div className="max-w-2xl space-y-10">
+    <div className="max-w-2xl space-y-6 md:space-y-10">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Practicar
         </h1>
-        <p className="text-muted-foreground mt-2 text-lg">
+        <p className="text-muted-foreground mt-1.5 md:mt-2 text-base md:text-lg">
           Escucha y selecciona los acordes en orden
         </p>
       </div>
 
-      <Tabs defaultValue="piano" className="space-y-8">
-        <TabsList className="inline-flex h-14 p-1.5 bg-card/50 border border-border/50 rounded-2xl">
+      <Tabs defaultValue="piano" className="space-y-6 md:space-y-8">
+        <TabsList className="inline-flex h-12 md:h-14 p-1 md:p-1.5 bg-card/50 border border-border/50 rounded-xl md:rounded-2xl w-full sm:w-auto">
           <TabsTrigger
             value="piano"
-            className="gap-2.5 px-6 py-3 rounded-xl data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:glow-sm"
+            className="flex-1 sm:flex-none gap-1.5 md:gap-2.5 px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:glow-sm text-sm md:text-base"
           >
             <Piano className="w-4 h-4" />
-            Acordes Piano
+            <span className="hidden xs:inline">Acordes</span> Piano
           </TabsTrigger>
           <TabsTrigger
             value="repertoire"
-            className="gap-2.5 px-6 py-3 rounded-xl data-[state=active]:bg-accent/15 data-[state=active]:text-accent"
+            className="flex-1 sm:flex-none gap-1.5 md:gap-2.5 px-3 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl data-[state=active]:bg-accent/15 data-[state=active]:text-accent text-sm md:text-base"
           >
             <Music className="w-4 h-4" />
             Repertorio

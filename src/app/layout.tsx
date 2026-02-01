@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EA - Entrenamiento Auditivo",
-  description: "Aprende a reconocer progresiones y ritmos de música latina",
+  title: "Progresiones",
+  description: "Aprende a reconocer progresiones armónicas de música latina",
 };
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
       >
         <Header />
-        <main className="container py-10">
+        <main>
           {children}
         </main>
       </body>

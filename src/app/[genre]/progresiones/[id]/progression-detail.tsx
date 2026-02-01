@@ -63,6 +63,7 @@ function SongCard({ song }: { song: Song }) {
   const playerRef = useRef<YTPlayer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldStartTimerRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const playerId = `player-${song.id}`;
@@ -121,6 +122,14 @@ function SongCard({ song }: { song: Song }) {
         onStateChange: (event) => {
           if (event.data === window.YT.PlayerState.PLAYING) {
             setIsPlaying(true);
+            if (shouldStartTimerRef.current) {
+              shouldStartTimerRef.current = false;
+              if (timerRef.current) clearTimeout(timerRef.current);
+              timerRef.current = setTimeout(() => {
+                playerRef.current?.pauseVideo();
+                setIsPlaying(false);
+              }, (song.duration || 15) * 1000);
+            }
           } else if (
             event.data === window.YT.PlayerState.PAUSED ||
             event.data === window.YT.PlayerState.ENDED
@@ -137,27 +146,24 @@ function SongCard({ song }: { song: Song }) {
 
     if (isPlaying) {
       playerRef.current.pauseVideo();
+      shouldStartTimerRef.current = false;
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
     } else {
+      shouldStartTimerRef.current = true;
       playerRef.current.seekTo(song.startTime || 0, true);
       playerRef.current.playVideo();
-
-      timerRef.current = setTimeout(() => {
-        playerRef.current?.pauseVideo();
-        setIsPlaying(false);
-      }, (song.duration || 15) * 1000);
     }
-  }, [isPlaying, isPlayerReady, song.startTime, song.duration]);
+  }, [isPlaying, isPlayerReady, song.startTime]);
 
   return (
     <div className="overflow-hidden rounded-2xl bg-card/50 border border-border/50 hover:border-primary/30 transition-all duration-200">
-      <div className="flex items-center gap-4 p-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4">
         <div
           ref={containerRef}
-          className="w-36 aspect-video bg-secondary/30 relative rounded-xl overflow-hidden shrink-0 border border-border/30 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
+          className="w-full sm:w-32 md:w-36 aspect-video bg-secondary/30 relative rounded-xl overflow-hidden shrink-0 border border-border/30 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
         >
           {!isPlayerReady && (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-xs">
@@ -166,30 +172,32 @@ function SongCard({ song }: { song: Song }) {
           )}
         </div>
 
-        <div className="flex-1 min-w-0 py-1">
-          <p className="font-semibold text-sm truncate">{song.title}</p>
-          <p className="text-sm text-muted-foreground truncate mt-0.5">{song.artist}</p>
-          <div className="flex items-center gap-3 mt-2">
-            <span className="text-xs text-muted-foreground px-2.5 py-1 bg-secondary/50 rounded-lg border border-border/30">
-              {song.key} {song.mode === 'major' ? 'Mayor' : 'menor'}
-            </span>
-            {song.startTime !== null && song.duration !== null && (
-              <span className="text-xs text-muted-foreground">
-                {song.startTime}s - {song.startTime + song.duration}s
+        <div className="flex-1 min-w-0 flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm truncate">{song.title}</p>
+            <p className="text-sm text-muted-foreground truncate mt-0.5">{song.artist}</p>
+            <div className="flex items-center gap-2 sm:gap-3 mt-2 flex-wrap">
+              <span className="text-xs text-muted-foreground px-2 sm:px-2.5 py-1 bg-secondary/50 rounded-lg border border-border/30">
+                {song.key} {song.mode === 'major' ? 'Mayor' : 'menor'}
               </span>
-            )}
+              {song.startTime !== null && song.duration !== null && (
+                <span className="text-xs text-muted-foreground">
+                  {song.startTime}s - {song.startTime + song.duration}s
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        <Button
-          size="icon"
-          variant={isPlaying ? 'secondary' : 'default'}
-          onClick={handlePlay}
-          disabled={!isPlayerReady}
-          className={`shrink-0 h-11 w-11 rounded-xl ${isPlaying ? 'bg-secondary/80' : 'glow'}`}
-        >
-          {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-        </Button>
+          <Button
+            size="icon"
+            variant={isPlaying ? 'secondary' : 'default'}
+            onClick={handlePlay}
+            disabled={!isPlayerReady}
+            className={`shrink-0 h-10 w-10 sm:h-11 sm:w-11 rounded-xl ${isPlaying ? 'bg-secondary/80' : 'glow'}`}
+          >
+            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -232,33 +240,33 @@ export function ProgressionDetail({ genre, progression, songs }: ProgressionDeta
   }, [progression, isReady, initialize, isPlaying, stop, playProgression]);
 
   return (
-    <div className="max-w-2xl space-y-10">
+    <div className="max-w-2xl space-y-6 md:space-y-10">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           {progression.name}
         </h1>
         {progression.description && (
-          <p className="text-muted-foreground mt-2 text-lg">
+          <p className="text-muted-foreground mt-1.5 md:mt-2 text-base md:text-lg">
             {progression.description}
           </p>
         )}
       </div>
 
-      <div className="p-8 rounded-3xl bg-card/50 border border-border/50">
+      <div className="p-4 md:p-8 rounded-2xl md:rounded-3xl bg-card/50 border border-border/50">
         <div className="flex items-center justify-center">
           <Button
             size="lg"
-            className="gap-2.5 h-14 px-8 rounded-xl text-base glow hover:glow transition-all duration-300"
+            className="gap-2 md:gap-2.5 h-12 md:h-14 px-6 md:px-8 rounded-xl text-sm md:text-base glow hover:glow transition-all duration-300"
             onClick={handlePlay}
           >
             {isPlaying ? (
               <>
-                <Square className="w-5 h-5" />
+                <Square className="w-4 h-4 md:w-5 md:h-5" />
                 Detener
               </>
             ) : (
               <>
-                <Play className="w-5 h-5" />
+                <Play className="w-4 h-4 md:w-5 md:h-5" />
                 Escuchar progresión
               </>
             )}
@@ -267,22 +275,22 @@ export function ProgressionDetail({ genre, progression, songs }: ProgressionDeta
       </div>
 
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar canciones..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-11 h-12 rounded-xl bg-card/50 border-border/50 focus:border-primary/50"
+          className="pl-9 md:pl-11 h-10 md:h-12 rounded-xl bg-card/50 border-border/50 focus:border-primary/50"
         />
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4 md:space-y-5">
         <h2 className="text-sm font-medium text-muted-foreground">
           {filteredSongs.length} {filteredSongs.length === 1 ? 'canción' : 'canciones'}
         </h2>
 
         {filteredSongs.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-8 md:py-12">
             <p className="text-muted-foreground">
               {searchQuery ? 'No se encontraron canciones' : 'No hay canciones con esta progresión en este género'}
             </p>
