@@ -32,12 +32,11 @@ export default async function HomePage() {
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-16">
       <div className="text-center mb-12 md:mb-20">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 md:mb-6">
-          Entrena tu{' '}
-          <span className="text-gradient">oído musical</span>
+          <span className="text-gradient">Progresiones</span>
         </h1>
         <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Aprende a reconocer progresiones armónicas de música latina
-          a través de ejercicios interactivos.
+          Reconoce y comprende progresiones armónicas de la música latina
+          a través de ejercicios prácticos y grabaciones reales del repertorio.
         </p>
       </div>
 

@@ -125,6 +125,7 @@ class ToneEngine {
     const transport = this.Tone.getTransport();
     const Tone = this.Tone;
 
+    const chordInterval = 1.25; // seconds between chords
     chords.forEach((chord, index) => {
       const eventId = transport.schedule((time) => {
         this.synth!.triggerAttackRelease(chord.notes, 0.9, time);
@@ -134,7 +135,7 @@ class ToneEngine {
             this.onBeatCallback!(index);
           }, time);
         }
-      }, index); // Schedule at index seconds (0, 1, 2, 3...)
+      }, index * chordInterval);
       this.scheduledEvents.push(eventId);
     });
 
@@ -146,7 +147,7 @@ class ToneEngine {
           this.onBeatCallback!(-1);
         }, Tone.now());
       }
-    }, chords.length + 0.5); // Stop half second after last chord
+    }, chords.length * chordInterval + 0.5);
     this.scheduledEvents.push(stopId);
 
     transport.start();

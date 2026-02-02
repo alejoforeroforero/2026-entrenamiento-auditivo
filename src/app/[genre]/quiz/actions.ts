@@ -28,7 +28,7 @@ export async function startQuizAction(genreId: string, mode: QuizMode) {
   let sessionId: string | null = null;
 
   if (mode === 'piano') {
-    const progressions = await getProgressionsForQuiz(genreId, 10);
+    const progressions = await getProgressionsForQuiz(genreId, 5);
 
     if (progressions.length < 4) {
       return { error: 'No hay suficientes progresiones para este género' };
@@ -69,7 +69,7 @@ export async function startQuizAction(genreId: string, mode: QuizMode) {
       }));
     }
   } else {
-    const songs = await getSongsForQuiz(genreId, 10);
+    const songs = await getSongsForQuiz(genreId, 5);
 
     if (songs.length < 4) {
       return { error: 'No hay suficientes canciones con video para este género' };
