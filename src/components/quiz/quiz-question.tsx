@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useCallback, useEffect } from 'react';
 import { Play, Square, Trash2, Volume2 } from 'lucide-react';
 import { Button, Chip } from '@heroui/react';
 import { QuizProgress } from './quiz-progress';
 import { QuizAttempts } from './quiz-attempts';
 import { QuizFeedback } from './quiz-feedback';
+import { YouTubePlayer } from '@/components/audio/youtube-player';
 import { QuizQuestion as QuizQuestionType, QuizMode } from '@/types/quiz';
 import { useTone } from '@/hooks/useTone';
 import { buildProgression, getRandomKey } from '@/lib/music';
@@ -139,14 +139,18 @@ export function QuizQuestionComponent({
           onPlay={handlePlay}
           onStop={stop}
         />
-      ) : (
-        <RepertoirePlayer
+      ) : question.songYoutubeId ? (
+        <YouTubePlayer
           youtubeId={question.songYoutubeId}
           startTime={question.songStartTime}
           duration={question.songDuration}
-          title={question.songTitle}
+          title={question.songTitle || 'Sin título'}
           artist={question.songArtist}
         />
+      ) : (
+        <div className="p-3 rounded-xl bg-card/50 border border-border/50 text-center text-muted-foreground text-sm">
+          No hay video disponible para esta pregunta
+        </div>
       )}
 
       {!isReady && mode === 'piano' && (
@@ -300,172 +304,4 @@ function PianoPlayer({ isPlaying, isReady, onPlay, onStop }: PianoPlayerProps) {
   );
 }
 
-interface RepertoirePlayerProps {
-  youtubeId?: string;
-  startTime?: number;
-  duration?: number;
-  title?: string;
-  artist?: string;
-}
-
-function RepertoirePlayer({ youtubeId, startTime, duration, title, artist }: RepertoirePlayerProps) {
-  const playerRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const shouldStartTimerRef = useRef(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const playerId = `quiz-player-${youtubeId}`;
-
-  useEffect(() => {
-    setIsPlaying(false);
-    setIsPlayerReady(false);
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  }, [youtubeId]);
-
-  useEffect(() => {
-    if (!youtubeId) return;
-
-    const initPlayer = () => {
-      if (!window.YT || !containerRef.current) return;
-
-      if (!document.getElementById(playerId)) {
-        const playerDiv = document.createElement('div');
-        playerDiv.id = playerId;
-        containerRef.current.appendChild(playerDiv);
-      }
-
-      new window.YT.Player(playerId, {
-        videoId: youtubeId,
-        playerVars: {
-          controls: 0,
-          disablekb: 1,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-          start: Math.floor(startTime || 0),
-        },
-        events: {
-          onReady: (event: any) => {
-            playerRef.current = event.target;
-            setIsPlayerReady(true);
-          },
-          onStateChange: (event: any) => {
-            if (event.data === window.YT.PlayerState.PLAYING) {
-              setIsPlaying(true);
-              if (shouldStartTimerRef.current) {
-                shouldStartTimerRef.current = false;
-                if (timerRef.current) clearTimeout(timerRef.current);
-                timerRef.current = setTimeout(() => {
-                  playerRef.current?.pauseVideo();
-                  setIsPlaying(false);
-                }, (duration || 15) * 1000);
-              }
-            } else if (
-              event.data === window.YT.PlayerState.PAUSED ||
-              event.data === window.YT.PlayerState.ENDED
-            ) {
-              setIsPlaying(false);
-            }
-          },
-        },
-      });
-    };
-
-    if (window.YT) {
-      initPlayer();
-    } else if (!document.getElementById('youtube-api')) {
-      const tag = document.createElement('script');
-      tag.id = 'youtube-api';
-      tag.src = 'https://www.youtube.com/iframe_api';
-      tag.async = true;
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-      const previousCallback = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        previousCallback?.();
-        initPlayer();
-      };
-    }
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      playerRef.current?.destroy();
-    };
-  }, [youtubeId]);
-
-  const handlePlay = useCallback(() => {
-    if (!playerRef.current || !isPlayerReady) return;
-
-    if (isPlaying) {
-      playerRef.current.pauseVideo();
-      shouldStartTimerRef.current = false;
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    } else {
-      shouldStartTimerRef.current = true;
-      playerRef.current.seekTo(startTime || 0, true);
-      playerRef.current.playVideo();
-    }
-  }, [isPlaying, isPlayerReady, startTime]);
-
-  if (!youtubeId) {
-    return (
-      <div className="p-3 rounded-xl bg-card/50 border border-border/50 text-center text-muted-foreground text-sm">
-        No hay video disponible para esta pregunta
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-3 rounded-xl bg-card/50 border border-border/50">
-      <div className="flex gap-3 items-center">
-        <div
-          ref={containerRef}
-          className="w-28 md:w-36 aspect-video bg-secondary/30 relative rounded-lg overflow-hidden border border-border/30 shrink-0 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
-        >
-          {!isPlayerReady && (
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-xs">
-              ...
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {title && (
-            <div>
-              <p className="font-semibold text-sm truncate">{title}</p>
-              {artist && <p className="text-xs text-muted-foreground truncate">{artist}</p>}
-            </div>
-          )}
-          <Button
-            size="sm"
-            color="primary"
-            className={cn('gap-1.5 h-8 px-3 rounded-lg text-xs mt-2', !isPlaying && 'shadow-md shadow-primary/20')}
-            onPress={handlePlay}
-            isDisabled={!isPlayerReady}
-          >
-            {isPlaying ? (
-              <>
-                <Square className="w-3 h-3" />
-                Detener
-              </>
-            ) : (
-              <>
-                <Play className="w-3 h-3" />
-                Reproducir
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
 

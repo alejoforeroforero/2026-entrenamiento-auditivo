@@ -497,50 +497,56 @@ function RepertoireMode({ genre }: { genre: string }) {
 
   return (
     <div className="space-y-2 md:space-y-6">
-      <div className="p-2.5 md:p-4 rounded-xl bg-card/50 border border-border/50">
-        <div className="flex items-center gap-2.5">
+      <div className="p-3 sm:p-4 rounded-xl bg-card/50 border border-border/50">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div
             ref={containerRef}
-            className="w-20 md:w-32 aspect-video bg-secondary/30 relative rounded-lg overflow-hidden shrink-0 border border-border/30 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
+            className="w-28 sm:w-40 md:w-44 aspect-video bg-default-100 relative rounded-xl overflow-hidden shrink-0 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0 group cursor-pointer"
+            onClick={handlePlay}
           >
-            {!isPlayerReady && (
-              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-xs">
-                ...
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            {currentSong ? (
-              <>
-                <p className="font-semibold text-sm truncate">{currentSong.title}</p>
-                <p className="text-xs text-muted-foreground truncate">{currentSong.artist}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {currentSong.key} {currentSong.mode === 'major' ? 'Mayor' : 'menor'}
-                </p>
-              </>
-            ) : (
-              <p className="text-muted-foreground text-sm">Cargando...</p>
-            )}
-          </div>
-
-          <div className="flex gap-1.5 shrink-0">
-            <Button
-              isIconOnly
-              color="primary"
-              className="h-9 w-9 md:h-10 md:w-10 min-w-9 rounded-lg glow"
-              onPress={handlePlay}
-              isDisabled={!isPlayerReady}
+            <div className="absolute inset-0 z-[5] bg-black/60 pointer-events-none" />
+            <button
+              className={`absolute inset-0 z-10 flex items-center justify-center transition-all ${
+                isPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'
+              }`}
+              disabled={!isPlayerReady}
             >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </Button>
+              <span
+                className={`flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary shadow-lg shadow-primary/40 transition-transform ${
+                  !isPlaying && 'group-hover:scale-110'
+                }`}
+              >
+                {isPlaying ? (
+                  <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
+                ) : (
+                  <Play className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground ml-0.5" />
+                )}
+              </span>
+            </button>
+          </div>
+
+          <div className="flex-1 min-w-0 flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              {currentSong ? (
+                <>
+                  <p className="font-semibold text-sm sm:text-base truncate">{currentSong.title}</p>
+                  <p className="text-sm text-default-500 truncate mt-0.5">{currentSong.artist}</p>
+                  <p className="text-xs text-default-400 mt-1">
+                    {currentSong.key} {currentSong.mode === 'major' ? 'Mayor' : 'menor'}
+                  </p>
+                </>
+              ) : (
+                <p className="text-muted-foreground text-sm">Cargando...</p>
+              )}
+            </div>
+
             <Button
               isIconOnly
               variant="bordered"
-              className="h-9 w-9 md:h-10 md:w-10 min-w-9 rounded-lg bg-secondary/50 border-border/50"
+              className="h-10 w-10 md:h-11 md:w-11 min-w-10 rounded-lg bg-secondary/50 border-border/50 shrink-0"
               onPress={handleNext}
             >
-              <SkipForward className="w-4 h-4" />
+              <SkipForward className="w-5 h-5" />
             </Button>
           </div>
         </div>
