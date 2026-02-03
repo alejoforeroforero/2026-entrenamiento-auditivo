@@ -1,0 +1,43 @@
+export function IconQuiz({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      fill="currentColor"
+    >
+      {/* Trofeo - copa */}
+      <path
+        d="M7,4 L7,10 Q7,14 12,15 Q17,14 17,10 L17,4 Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+
+      {/* Asas del trofeo */}
+      <path
+        d="M7,6 Q3,6 3,9 Q3,12 7,11"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M17,6 Q21,6 21,9 Q21,12 17,11"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+
+      {/* Pie del trofeo */}
+      <rect x="10" y="15" width="4" height="3" rx="0.5" />
+
+      {/* Base */}
+      <rect x="7" y="18" width="10" height="2" rx="1" />
+
+      {/* Estrella en el centro */}
+      <circle cx="12" cy="9" r="2" opacity="0.4" />
+    </svg>
+  );
+}
