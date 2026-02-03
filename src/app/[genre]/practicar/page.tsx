@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, use } from 'react';
-import { useRouter } from 'next/navigation';
 import { Play, RotateCcw, SkipForward, Check, X, Piano, Music, Pause, Trophy } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button, Tabs, Tab } from '@heroui/react';
 import { useTone } from '@/hooks/useTone';
 import { buildProgression, getRandomKey } from '@/lib/music';
 import { Chord, NoteName, RomanNumeral } from '@/types/music';
@@ -181,26 +179,27 @@ function PianoMode({ genre }: { genre: string }) {
     <div className="space-y-2 md:space-y-6">
       <div className="flex items-center justify-center gap-2 md:gap-3">
         <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 md:h-10 md:w-10 rounded-lg bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border"
-          onClick={handleReplay}
-          disabled={chords.length === 0}
+          variant="bordered"
+          isIconOnly
+          className="h-9 w-9 md:h-10 md:w-10 min-w-9 rounded-lg bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border"
+          onPress={handleReplay}
+          isDisabled={chords.length === 0}
         >
           <RotateCcw className="w-4 h-4" />
         </Button>
         <Button
+          color="primary"
           className="gap-1.5 h-9 md:h-10 px-4 md:px-6 rounded-lg text-sm glow hover:glow transition-all duration-300"
-          onClick={handlePlay}
+          onPress={handlePlay}
         >
           {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           {isPlaying ? 'Detener' : 'Reproducir'}
         </Button>
         <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 md:h-10 md:w-10 rounded-lg bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border"
-          onClick={handleNext}
+          variant="bordered"
+          isIconOnly
+          className="h-9 w-9 md:h-10 md:w-10 min-w-9 rounded-lg bg-secondary/50 border-border/50 hover:bg-secondary hover:border-border"
+          onPress={handleNext}
         >
           <SkipForward className="w-4 h-4" />
         </Button>
@@ -252,8 +251,9 @@ function PianoMode({ genre }: { genre: string }) {
           <div className="flex gap-1.5">
             <Button
               size="sm"
-              onClick={handleCheck}
-              disabled={selectedChords.length !== progressionLength || hasChecked}
+              color="primary"
+              onPress={handleCheck}
+              isDisabled={selectedChords.length !== progressionLength || hasChecked}
               className="gap-1 h-7 px-2.5 rounded-md text-xs"
             >
               <Check className="w-3 h-3" />
@@ -261,9 +261,9 @@ function PianoMode({ genre }: { genre: string }) {
             </Button>
             <Button
               size="sm"
-              variant="outline"
-              onClick={handleClear}
-              disabled={selectedChords.length === 0}
+              variant="bordered"
+              onPress={handleClear}
+              isDisabled={selectedChords.length === 0}
               className="gap-1 h-7 px-2.5 rounded-md bg-secondary/50 border-border/50 text-xs"
             >
               <X className="w-3 h-3" />
@@ -530,18 +530,19 @@ function RepertoireMode({ genre }: { genre: string }) {
 
           <div className="flex gap-1.5 shrink-0">
             <Button
-              size="icon"
-              className="h-9 w-9 md:h-10 md:w-10 rounded-lg glow"
-              onClick={handlePlay}
-              disabled={!isPlayerReady}
+              isIconOnly
+              color="primary"
+              className="h-9 w-9 md:h-10 md:w-10 min-w-9 rounded-lg glow"
+              onPress={handlePlay}
+              isDisabled={!isPlayerReady}
             >
               {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             </Button>
             <Button
-              size="icon"
-              variant="outline"
-              className="h-9 w-9 md:h-10 md:w-10 rounded-lg bg-secondary/50 border-border/50"
-              onClick={handleNext}
+              isIconOnly
+              variant="bordered"
+              className="h-9 w-9 md:h-10 md:w-10 min-w-9 rounded-lg bg-secondary/50 border-border/50"
+              onPress={handleNext}
             >
               <SkipForward className="w-4 h-4" />
             </Button>
@@ -595,8 +596,9 @@ function RepertoireMode({ genre }: { genre: string }) {
           <div className="flex gap-1.5">
             <Button
               size="sm"
-              onClick={handleCheck}
-              disabled={!currentSong || selectedChords.length !== progressionLength || hasChecked}
+              color="primary"
+              onPress={handleCheck}
+              isDisabled={!currentSong || selectedChords.length !== progressionLength || hasChecked}
               className="gap-1 h-7 px-2.5 rounded-md text-xs"
             >
               <Check className="w-3 h-3" />
@@ -604,9 +606,9 @@ function RepertoireMode({ genre }: { genre: string }) {
             </Button>
             <Button
               size="sm"
-              variant="outline"
-              onClick={handleClear}
-              disabled={selectedChords.length === 0}
+              variant="bordered"
+              onPress={handleClear}
+              isDisabled={selectedChords.length === 0}
               className="gap-1 h-7 px-2.5 rounded-md bg-secondary/50 border-border/50 text-xs"
             >
               <X className="w-3 h-3" />
@@ -681,11 +683,6 @@ export default function PracticarPage({
   params: Promise<{ genre: string }>;
 }) {
   const { genre } = use(params);
-  const router = useRouter();
-
-  const handleQuizClick = () => {
-    router.push(`/${genre}/quiz`);
-  };
 
   return (
     <div className="max-w-2xl space-y-4 md:space-y-10">
@@ -698,38 +695,49 @@ export default function PracticarPage({
         </p>
       </div>
 
-      <Tabs defaultValue="piano" className="space-y-4 md:space-y-8">
-        <TabsList className="inline-flex h-10 md:h-14 p-1 md:p-1.5 bg-card/50 border border-border/50 rounded-xl md:rounded-2xl w-full sm:w-auto">
-          <TabsTrigger
-            value="piano"
-            className="flex-1 sm:flex-none gap-1.5 md:gap-2.5 px-3 md:px-6 py-1.5 md:py-3 rounded-lg md:rounded-xl data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:glow-sm text-sm md:text-base"
-          >
-            <Piano className="w-4 h-4" />
-            Piano
-          </TabsTrigger>
-          <TabsTrigger
-            value="repertoire"
-            className="flex-1 sm:flex-none gap-1.5 md:gap-2.5 px-3 md:px-6 py-1.5 md:py-3 rounded-lg md:rounded-xl data-[state=active]:bg-accent/15 data-[state=active]:text-accent text-sm md:text-base"
-          >
-            <Music className="w-4 h-4" />
-            Repertorio
-          </TabsTrigger>
-          <button
-            onClick={handleQuizClick}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 md:gap-2.5 px-3 md:px-6 py-1.5 md:py-3 rounded-lg md:rounded-xl text-sm md:text-base text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 transition-colors"
-          >
-            <Trophy className="w-4 h-4" />
-            Quiz
-          </button>
-        </TabsList>
-
-        <TabsContent value="piano">
+      <Tabs
+        defaultSelectedKey="piano"
+        variant="bordered"
+        color="primary"
+        classNames={{
+          tabList: 'gap-2 p-1 bg-content1/50 border border-divider rounded-xl',
+          tab: 'px-4 py-2 rounded-lg data-[selected=true]:bg-primary/15',
+          cursor: 'bg-primary/20 rounded-lg',
+          panel: 'pt-6',
+        }}
+      >
+        <Tab
+          key="piano"
+          title={
+            <div className="flex items-center gap-2">
+              <Piano className="w-4 h-4" />
+              <span>Piano</span>
+            </div>
+          }
+        >
           <PianoMode genre={genre} />
-        </TabsContent>
-
-        <TabsContent value="repertoire">
+        </Tab>
+        <Tab
+          key="repertoire"
+          title={
+            <div className="flex items-center gap-2">
+              <Music className="w-4 h-4" />
+              <span>Repertorio</span>
+            </div>
+          }
+        >
           <RepertoireMode genre={genre} />
-        </TabsContent>
+        </Tab>
+        <Tab
+          key="quiz"
+          title={
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              <span>Quiz</span>
+            </div>
+          }
+          href={`/${genre}/quiz`}
+        />
       </Tabs>
     </div>
   );

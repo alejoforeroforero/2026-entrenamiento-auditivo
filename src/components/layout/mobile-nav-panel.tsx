@@ -4,13 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Music } from 'lucide-react';
+import { Accordion, AccordionItem } from '@heroui/react';
 import { cn } from '@/lib/utils';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { useMobileNavStore, ProgressionItem } from '@/stores/mobile-nav-store';
 
 type Difficulty = 'beginner' | 'intermediate' | 'advanced';
@@ -86,10 +81,10 @@ export function MobileNavPanel() {
               </p>
             ) : (
               <Accordion
-                type="single"
-                collapsible
-                defaultValue={defaultOpenLevel}
-                className="space-y-1"
+                selectionMode="single"
+                defaultSelectedKeys={[defaultOpenLevel]}
+                className="space-y-1 px-0"
+                variant="light"
               >
                 {difficultyOrder.map((difficulty) => {
                   const items = progressionsByDifficulty[difficulty];
@@ -98,39 +93,42 @@ export function MobileNavPanel() {
                   return (
                     <AccordionItem
                       key={difficulty}
-                      value={difficulty}
-                      className="border-none"
+                      aria-label={difficultyLabels[difficulty]}
+                      title={
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-sm font-medium">{difficultyLabels[difficulty]}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {items.length}
+                          </span>
+                        </div>
+                      }
+                      classNames={{
+                        trigger: 'px-3 py-2 hover:bg-secondary/50 rounded-lg',
+                        content: 'pb-1',
+                      }}
                     >
-                      <AccordionTrigger className="px-3 py-2 hover:no-underline hover:bg-secondary/50 rounded-lg text-sm font-medium">
-                        {difficultyLabels[difficulty]}
-                        <span className="text-xs text-muted-foreground ml-auto mr-2">
-                          {items.length}
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-1">
-                        <nav className="space-y-1 pl-2">
-                          {items.map((progression) => {
-                            const isActive =
-                              pathname === `/${genre}/progresiones/${progression.id}`;
-                            return (
-                              <Link
-                                key={progression.id}
-                                href={`/${genre}/progresiones/${progression.id}`}
-                                onClick={handleLinkClick}
-                                className={cn(
-                                  'flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200',
-                                  isActive
-                                    ? 'bg-primary/15 text-primary glow-sm'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                                )}
-                              >
-                                <Music className="w-4 h-4 shrink-0" />
-                                <span className="truncate">{progression.name}</span>
-                              </Link>
-                            );
-                          })}
-                        </nav>
-                      </AccordionContent>
+                      <nav className="space-y-1 pl-2">
+                        {items.map((progression) => {
+                          const isActive =
+                            pathname === `/${genre}/progresiones/${progression.id}`;
+                          return (
+                            <Link
+                              key={progression.id}
+                              href={`/${genre}/progresiones/${progression.id}`}
+                              onClick={handleLinkClick}
+                              className={cn(
+                                'flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200',
+                                isActive
+                                  ? 'bg-primary/15 text-primary glow-sm'
+                                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                              )}
+                            >
+                              <Music className="w-4 h-4 shrink-0" />
+                              <span className="truncate">{progression.name}</span>
+                            </Link>
+                          );
+                        })}
+                      </nav>
                     </AccordionItem>
                   );
                 })}

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardBody } from '@heroui/react';
 
 interface StatsCardProps {
   title: string;
@@ -28,13 +28,13 @@ export function StatsCard({
       transition={{ duration: 0.3 }}
     >
       <Card className={cn('overflow-hidden', className)}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <p className="text-sm font-medium text-muted-foreground">
             {title}
-          </CardTitle>
+          </p>
           {icon && <div className="text-muted-foreground">{icon}</div>}
         </CardHeader>
-        <CardContent>
+        <CardBody className="pt-0">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold">{value}</span>
             {trend && (
@@ -54,7 +54,7 @@ export function StatsCard({
           {subtitle && (
             <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
           )}
-        </CardContent>
+        </CardBody>
       </Card>
     </motion.div>
   );

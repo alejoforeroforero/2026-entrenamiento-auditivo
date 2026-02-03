@@ -2,27 +2,24 @@
 
 import { useState } from 'react';
 import { Genre, Progression, Song } from '@prisma/client';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import {
+  Tabs,
+  Tab,
+  Button,
+  Input,
+  Chip,
+  Card,
+  CardHeader,
+  CardBody,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
   Select,
-  SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  useDisclosure,
+} from '@heroui/react';
 import { Plus, Pencil, Trash2, Music, ListMusic, Disc } from 'lucide-react';
 import {
   createGenre,
@@ -53,345 +50,283 @@ const MODES = ['major', 'minor'] as const;
 
 export function AdminClient({ genres, progressions, songs }: AdminClientProps) {
   return (
-    <Tabs defaultValue="genres">
-      <TabsList className="mb-6">
-        <TabsTrigger value="genres" className="gap-2">
-          <Disc className="size-4" />
-          Géneros ({genres.length})
-        </TabsTrigger>
-        <TabsTrigger value="progressions" className="gap-2">
-          <ListMusic className="size-4" />
-          Progresiones ({progressions.length})
-        </TabsTrigger>
-        <TabsTrigger value="songs" className="gap-2">
-          <Music className="size-4" />
-          Canciones ({songs.length})
-        </TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="genres">
+    <Tabs defaultSelectedKey="genres" classNames={{ panel: 'pt-6' }}>
+      <Tab
+        key="genres"
+        title={
+          <div className="flex items-center gap-2">
+            <Disc className="size-4" />
+            <span>Géneros ({genres.length})</span>
+          </div>
+        }
+      >
         <GenresTab genres={genres} />
-      </TabsContent>
-
-      <TabsContent value="progressions">
+      </Tab>
+      <Tab
+        key="progressions"
+        title={
+          <div className="flex items-center gap-2">
+            <ListMusic className="size-4" />
+            <span>Progresiones ({progressions.length})</span>
+          </div>
+        }
+      >
         <ProgressionsTab progressions={progressions} />
-      </TabsContent>
-
-      <TabsContent value="songs">
+      </Tab>
+      <Tab
+        key="songs"
+        title={
+          <div className="flex items-center gap-2">
+            <Music className="size-4" />
+            <span>Canciones ({songs.length})</span>
+          </div>
+        }
+      >
         <SongsTab songs={songs} genres={genres} progressions={progressions} />
-      </TabsContent>
+      </Tab>
     </Tabs>
   );
 }
 
 function GenresTab({ genres }: { genres: Genre[] }) {
+  const createModal = useDisclosure();
   const [editingGenre, setEditingGenre] = useState<Genre | null>(null);
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Géneros Musicales</h2>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="size-4 mr-2" />
-              Nuevo Género
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Crear Género</DialogTitle>
-            </DialogHeader>
-            <form action={createGenre} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">ID (slug)</label>
-                <Input name="id" placeholder="salsa" required />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Nombre</label>
-                <Input name="name" placeholder="Salsa" required />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Etiqueta</label>
-                <Input name="label" placeholder="Salsa Clásica" required />
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">
+        <Button color="primary" onPress={createModal.onOpen}>
+          <Plus className="size-4 mr-2" />
+          Nuevo Género
+        </Button>
+        <Modal isOpen={createModal.isOpen} onOpenChange={createModal.onOpenChange}>
+          <ModalContent>
+            {(onClose) => (
+              <form action={createGenre} onSubmit={() => onClose()}>
+                <ModalHeader>Crear Género</ModalHeader>
+                <ModalBody className="space-y-4">
+                  <Input name="id" label="ID (slug)" placeholder="salsa" isRequired />
+                  <Input name="name" label="Nombre" placeholder="Salsa" isRequired />
+                  <Input name="label" label="Etiqueta" placeholder="Salsa Clásica" isRequired />
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant="bordered" onPress={onClose}>
                     Cancelar
                   </Button>
-                </DialogClose>
-                <Button type="submit">Crear</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                  <Button color="primary" type="submit">
+                    Crear
+                  </Button>
+                </ModalFooter>
+              </form>
+            )}
+          </ModalContent>
+        </Modal>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {genres.map((genre) => (
-          <Card key={genre.id}>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex justify-between items-start">
-                <span>{genre.name}</span>
-                <div className="flex gap-1">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setEditingGenre(genre)}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Editar Género</DialogTitle>
-                      </DialogHeader>
-                      <form action={updateGenre} className="space-y-4">
-                        <input type="hidden" name="id" value={genre.id} />
-                        <div>
-                          <label className="text-sm font-medium">Nombre</label>
-                          <Input
-                            name="name"
-                            defaultValue={genre.name}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Etiqueta</label>
-                          <Input
-                            name="label"
-                            defaultValue={genre.label}
-                            required
-                          />
-                        </div>
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button type="button" variant="outline">
-                              Cancelar
-                            </Button>
-                          </DialogClose>
-                          <Button type="submit">Guardar</Button>
-                        </DialogFooter>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                  <form action={deleteGenre}>
-                    <input type="hidden" name="id" value={genre.id} />
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </form>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{genre.label}</p>
-              <Badge variant="outline" className="mt-2">
-                ID: {genre.id}
-              </Badge>
-            </CardContent>
-          </Card>
+          <GenreCard
+            key={genre.id}
+            genre={genre}
+            onEdit={() => setEditingGenre(genre)}
+          />
         ))}
       </div>
+
+      <Modal isOpen={!!editingGenre} onOpenChange={(open) => !open && setEditingGenre(null)}>
+        <ModalContent>
+          {(onClose) => (
+            <form action={updateGenre} onSubmit={() => onClose()}>
+              <ModalHeader>Editar Género</ModalHeader>
+              <ModalBody className="space-y-4">
+                <input type="hidden" name="id" value={editingGenre?.id} />
+                <Input
+                  name="name"
+                  label="Nombre"
+                  defaultValue={editingGenre?.name}
+                  isRequired
+                />
+                <Input
+                  name="label"
+                  label="Etiqueta"
+                  defaultValue={editingGenre?.label}
+                  isRequired
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="bordered" onPress={onClose}>
+                  Cancelar
+                </Button>
+                <Button color="primary" type="submit">
+                  Guardar
+                </Button>
+              </ModalFooter>
+            </form>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }
 
+function GenreCard({ genre, onEdit }: { genre: Genre; onEdit: () => void }) {
+  return (
+    <Card>
+      <CardHeader className="pb-2 flex flex-row justify-between items-start">
+        <p className="font-semibold">{genre.name}</p>
+        <div className="flex gap-1">
+          <Button variant="light" isIconOnly size="sm" onPress={onEdit}>
+            <Pencil className="size-4" />
+          </Button>
+          <form action={deleteGenre}>
+            <input type="hidden" name="id" value={genre.id} />
+            <Button
+              type="submit"
+              variant="light"
+              isIconOnly
+              size="sm"
+              className="text-danger"
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </form>
+        </div>
+      </CardHeader>
+      <CardBody>
+        <p className="text-sm text-muted-foreground">{genre.label}</p>
+        <Chip variant="bordered" size="sm" className="mt-2">
+          ID: {genre.id}
+        </Chip>
+      </CardBody>
+    </Card>
+  );
+}
+
 function ProgressionsTab({ progressions }: { progressions: Progression[] }) {
+  const createModal = useDisclosure();
+  const [editingProgression, setEditingProgression] = useState<Progression | null>(null);
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Progresiones Armónicas</h2>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="size-4 mr-2" />
-              Nueva Progresión
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Crear Progresión</DialogTitle>
-            </DialogHeader>
-            <form action={createProgression} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Nombre</label>
-                <Input name="name" placeholder="I-IV-V-I" required />
-              </div>
-              <div>
-                <label className="text-sm font-medium">
-                  Numerales (separados por coma)
-                </label>
-                <Input name="numerals" placeholder="I, IV, V, I" required />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Descripción</label>
-                <Input name="description" placeholder="Progresión clásica..." />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Dificultad</label>
-                <Select name="difficulty" defaultValue="beginner">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
+        <Button color="primary" onPress={createModal.onOpen}>
+          <Plus className="size-4 mr-2" />
+          Nueva Progresión
+        </Button>
+        <Modal isOpen={createModal.isOpen} onOpenChange={createModal.onOpenChange}>
+          <ModalContent>
+            {(onClose) => (
+              <form action={createProgression} onSubmit={() => onClose()}>
+                <ModalHeader>Crear Progresión</ModalHeader>
+                <ModalBody className="space-y-4">
+                  <Input name="name" label="Nombre" placeholder="I-IV-V-I" isRequired />
+                  <Input name="numerals" label="Numerales (separados por coma)" placeholder="I, IV, V, I" isRequired />
+                  <Input name="description" label="Descripción" placeholder="Progresión clásica..." />
+                  <Select name="difficulty" label="Dificultad" defaultSelectedKeys={['beginner']}>
                     {DIFFICULTIES.map((d) => (
-                      <SelectItem key={d} value={d}>
-                        {d === 'beginner'
-                          ? 'Principiante'
-                          : d === 'intermediate'
-                            ? 'Intermedio'
-                            : 'Avanzado'}
+                      <SelectItem key={d}>
+                        {d === 'beginner' ? 'Principiante' : d === 'intermediate' ? 'Intermedio' : 'Avanzado'}
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">
+                  </Select>
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant="bordered" onPress={onClose}>
                     Cancelar
                   </Button>
-                </DialogClose>
-                <Button type="submit">Crear</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                  <Button color="primary" type="submit">
+                    Crear
+                  </Button>
+                </ModalFooter>
+              </form>
+            )}
+          </ModalContent>
+        </Modal>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {progressions.map((prog) => (
-          <Card key={prog.id}>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex justify-between items-start">
-                <span>{prog.name}</span>
-                <div className="flex gap-1">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="size-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Editar Progresión</DialogTitle>
-                      </DialogHeader>
-                      <form action={updateProgression} className="space-y-4">
-                        <input type="hidden" name="id" value={prog.id} />
-                        <div>
-                          <label className="text-sm font-medium">Nombre</label>
-                          <Input name="name" defaultValue={prog.name} required />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">
-                            Numerales (separados por coma)
-                          </label>
-                          <Input
-                            name="numerals"
-                            defaultValue={prog.numerals.join(', ')}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">
-                            Descripción
-                          </label>
-                          <Input
-                            name="description"
-                            defaultValue={prog.description || ''}
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">
-                            Dificultad
-                          </label>
-                          <Select
-                            name="difficulty"
-                            defaultValue={prog.difficulty}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {DIFFICULTIES.map((d) => (
-                                <SelectItem key={d} value={d}>
-                                  {d === 'beginner'
-                                    ? 'Principiante'
-                                    : d === 'intermediate'
-                                      ? 'Intermedio'
-                                      : 'Avanzado'}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button type="button" variant="outline">
-                              Cancelar
-                            </Button>
-                          </DialogClose>
-                          <Button type="submit">Guardar</Button>
-                        </DialogFooter>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                  <form action={deleteProgression}>
-                    <input type="hidden" name="id" value={prog.id} />
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </form>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-1 mb-2">
-                {prog.numerals.map((n, i) => (
-                  <Badge key={i} variant="secondary">
-                    {n}
-                  </Badge>
-                ))}
-              </div>
-              {prog.description && (
-                <p className="text-sm text-muted-foreground mb-2">
-                  {prog.description}
-                </p>
-              )}
-              <Badge
-                variant={
-                  prog.difficulty === 'beginner'
-                    ? 'default'
-                    : prog.difficulty === 'intermediate'
-                      ? 'secondary'
-                      : 'destructive'
-                }
-              >
-                {prog.difficulty === 'beginner'
-                  ? 'Principiante'
-                  : prog.difficulty === 'intermediate'
-                    ? 'Intermedio'
-                    : 'Avanzado'}
-              </Badge>
-            </CardContent>
-          </Card>
+          <ProgressionCard
+            key={prog.id}
+            progression={prog}
+            onEdit={() => setEditingProgression(prog)}
+          />
         ))}
       </div>
+
+      <Modal isOpen={!!editingProgression} onOpenChange={(open) => !open && setEditingProgression(null)}>
+        <ModalContent>
+          {(onClose) => (
+            <form action={updateProgression} onSubmit={() => onClose()}>
+              <ModalHeader>Editar Progresión</ModalHeader>
+              <ModalBody className="space-y-4">
+                <input type="hidden" name="id" value={editingProgression?.id} />
+                <Input name="name" label="Nombre" defaultValue={editingProgression?.name} isRequired />
+                <Input name="numerals" label="Numerales (separados por coma)" defaultValue={editingProgression?.numerals.join(', ')} isRequired />
+                <Input name="description" label="Descripción" defaultValue={editingProgression?.description || ''} />
+                <Select name="difficulty" label="Dificultad" defaultSelectedKeys={editingProgression ? [editingProgression.difficulty] : []}>
+                  {DIFFICULTIES.map((d) => (
+                    <SelectItem key={d}>
+                      {d === 'beginner' ? 'Principiante' : d === 'intermediate' ? 'Intermedio' : 'Avanzado'}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="bordered" onPress={onClose}>
+                  Cancelar
+                </Button>
+                <Button color="primary" type="submit">
+                  Guardar
+                </Button>
+              </ModalFooter>
+            </form>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
+  );
+}
+
+function ProgressionCard({ progression, onEdit }: { progression: Progression; onEdit: () => void }) {
+  const difficultyColor = progression.difficulty === 'beginner' ? 'primary' : progression.difficulty === 'intermediate' ? 'secondary' : 'danger';
+
+  return (
+    <Card>
+      <CardHeader className="pb-2 flex flex-row justify-between items-start">
+        <p className="font-semibold">{progression.name}</p>
+        <div className="flex gap-1">
+          <Button variant="light" isIconOnly size="sm" onPress={onEdit}>
+            <Pencil className="size-4" />
+          </Button>
+          <form action={deleteProgression}>
+            <input type="hidden" name="id" value={progression.id} />
+            <Button type="submit" variant="light" isIconOnly size="sm" className="text-danger">
+              <Trash2 className="size-4" />
+            </Button>
+          </form>
+        </div>
+      </CardHeader>
+      <CardBody>
+        <div className="flex flex-wrap gap-1 mb-2">
+          {progression.numerals.map((n, i) => (
+            <Chip key={i} size="sm" variant="flat">
+              {n}
+            </Chip>
+          ))}
+        </div>
+        {progression.description && (
+          <p className="text-sm text-muted-foreground mb-2">
+            {progression.description}
+          </p>
+        )}
+        <Chip color={difficultyColor} size="sm">
+          {progression.difficulty === 'beginner' ? 'Principiante' : progression.difficulty === 'intermediate' ? 'Intermedio' : 'Avanzado'}
+        </Chip>
+      </CardBody>
+    </Card>
   );
 }
 
@@ -405,6 +340,8 @@ function SongsTab({
   progressions: Progression[];
 }) {
   const [filterGenre, setFilterGenre] = useState<string>('all');
+  const createModal = useDisclosure();
+  const [editingSong, setEditingSong] = useState<SongWithRelations | null>(null);
 
   const filteredSongs =
     filterGenre === 'all'
@@ -416,411 +353,197 @@ function SongsTab({
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold">Canciones</h2>
-          <Select value={filterGenre} onValueChange={setFilterGenre}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filtrar por género" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {genres.map((g) => (
-                <SelectItem key={g.id} value={g.id}>
-                  {g.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
+          <Select
+            selectedKeys={[filterGenre]}
+            onSelectionChange={(keys) => setFilterGenre(Array.from(keys)[0] as string)}
+            className="w-40"
+            size="sm"
+            items={[{ id: 'all', name: 'Todos' }, ...genres]}
+          >
+            {(item) => <SelectItem key={item.id}>{item.name}</SelectItem>}
           </Select>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="size-4 mr-2" />
-              Nueva Canción
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Crear Canción</DialogTitle>
-            </DialogHeader>
-            <form action={createSong} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Título</label>
-                  <Input name="title" required />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Artista</label>
-                  <Input name="artist" required />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Tonalidad</label>
-                  <Select name="key" defaultValue="C">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
+        <Button color="primary" onPress={createModal.onOpen}>
+          <Plus className="size-4 mr-2" />
+          Nueva Canción
+        </Button>
+        <Modal isOpen={createModal.isOpen} onOpenChange={createModal.onOpenChange} size="2xl" scrollBehavior="inside">
+          <ModalContent>
+            {(onClose) => (
+              <form action={createSong} onSubmit={() => onClose()}>
+                <ModalHeader>Crear Canción</ModalHeader>
+                <ModalBody className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input name="title" label="Título" isRequired />
+                    <Input name="artist" label="Artista" isRequired />
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <Select name="key" label="Tonalidad" defaultSelectedKeys={['C']}>
                       {NOTES.map((n) => (
-                        <SelectItem key={n} value={n}>
-                          {n}
-                        </SelectItem>
+                        <SelectItem key={n}>{n}</SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Modo</label>
-                  <Select name="mode" defaultValue="major">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
+                    </Select>
+                    <Select name="mode" label="Modo" defaultSelectedKeys={['major']}>
                       {MODES.map((m) => (
-                        <SelectItem key={m} value={m}>
-                          {m === 'major' ? 'Mayor' : 'Menor'}
-                        </SelectItem>
+                        <SelectItem key={m}>{m === 'major' ? 'Mayor' : 'Menor'}</SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Año</label>
-                  <Input name="year" type="number" placeholder="1975" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Género</label>
-                  <Select name="genreId" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar..." />
-                    </SelectTrigger>
-                    <SelectContent>
+                    </Select>
+                    <Input name="year" label="Año" type="number" placeholder="1975" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Select name="genreId" label="Género" isRequired placeholder="Seleccionar...">
                       {genres.map((g) => (
-                        <SelectItem key={g.id} value={g.id}>
-                          {g.name}
-                        </SelectItem>
+                        <SelectItem key={g.id}>{g.name}</SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Progresión</label>
-                  <Select name="progressionId" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar..." />
-                    </SelectTrigger>
-                    <SelectContent>
+                    </Select>
+                    <Select name="progressionId" label="Progresión" isRequired placeholder="Seleccionar...">
                       {progressions.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name}
-                        </SelectItem>
+                        <SelectItem key={p.id}>{p.name}</SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Dificultad</label>
-                <Select name="difficulty" defaultValue="beginner">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
+                    </Select>
+                  </div>
+                  <Select name="difficulty" label="Dificultad" defaultSelectedKeys={['beginner']}>
                     {DIFFICULTIES.map((d) => (
-                      <SelectItem key={d} value={d}>
-                        {d === 'beginner'
-                          ? 'Principiante'
-                          : d === 'intermediate'
-                            ? 'Intermedio'
-                            : 'Avanzado'}
+                      <SelectItem key={d}>
+                        {d === 'beginner' ? 'Principiante' : d === 'intermediate' ? 'Intermedio' : 'Avanzado'}
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Descripción</label>
-                <Input name="description" placeholder="Opcional..." />
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium">YouTube ID</label>
-                  <Input name="youtubeId" placeholder="dQw4w9WgXcQ" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">
-                    Inicio (segundos)
-                  </label>
-                  <Input name="startTime" type="number" placeholder="0" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">
-                    Duración (segundos)
-                  </label>
-                  <Input name="duration" type="number" placeholder="30" />
-                </div>
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">
+                  </Select>
+                  <Input name="description" label="Descripción" placeholder="Opcional..." />
+                  <div className="grid grid-cols-3 gap-4">
+                    <Input name="youtubeId" label="YouTube ID" placeholder="dQw4w9WgXcQ" />
+                    <Input name="startTime" label="Inicio (segundos)" type="number" placeholder="0" />
+                    <Input name="duration" label="Duración (segundos)" type="number" placeholder="30" />
+                  </div>
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant="bordered" onPress={onClose}>
                     Cancelar
                   </Button>
-                </DialogClose>
-                <Button type="submit">Crear</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                  <Button color="primary" type="submit">
+                    Crear
+                  </Button>
+                </ModalFooter>
+              </form>
+            )}
+          </ModalContent>
+        </Modal>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredSongs.map((song) => (
-          <Card key={song.id}>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex justify-between items-start text-base">
-                <div>
-                  <span className="block">{song.title}</span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {song.artist}
-                  </span>
-                </div>
-                <div className="flex gap-1">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="size-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Editar Canción</DialogTitle>
-                      </DialogHeader>
-                      <form action={updateSong} className="space-y-4">
-                        <input type="hidden" name="id" value={song.id} />
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm font-medium">
-                              Título
-                            </label>
-                            <Input
-                              name="title"
-                              defaultValue={song.title}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">
-                              Artista
-                            </label>
-                            <Input
-                              name="artist"
-                              defaultValue={song.artist}
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div>
-                            <label className="text-sm font-medium">
-                              Tonalidad
-                            </label>
-                            <Select name="key" defaultValue={song.key}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {NOTES.map((n) => (
-                                  <SelectItem key={n} value={n}>
-                                    {n}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">Modo</label>
-                            <Select name="mode" defaultValue={song.mode}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {MODES.map((m) => (
-                                  <SelectItem key={m} value={m}>
-                                    {m === 'major' ? 'Mayor' : 'Menor'}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">Año</label>
-                            <Input
-                              name="year"
-                              type="number"
-                              defaultValue={song.year || ''}
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm font-medium">
-                              Género
-                            </label>
-                            <Select name="genreId" defaultValue={song.genreId}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {genres.map((g) => (
-                                  <SelectItem key={g.id} value={g.id}>
-                                    {g.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">
-                              Progresión
-                            </label>
-                            <Select
-                              name="progressionId"
-                              defaultValue={song.progressionId}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {progressions.map((p) => (
-                                  <SelectItem key={p.id} value={p.id}>
-                                    {p.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">
-                            Dificultad
-                          </label>
-                          <Select
-                            name="difficulty"
-                            defaultValue={song.difficulty}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {DIFFICULTIES.map((d) => (
-                                <SelectItem key={d} value={d}>
-                                  {d === 'beginner'
-                                    ? 'Principiante'
-                                    : d === 'intermediate'
-                                      ? 'Intermedio'
-                                      : 'Avanzado'}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">
-                            Descripción
-                          </label>
-                          <Input
-                            name="description"
-                            defaultValue={song.description || ''}
-                          />
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div>
-                            <label className="text-sm font-medium">
-                              YouTube ID
-                            </label>
-                            <Input
-                              name="youtubeId"
-                              defaultValue={song.youtubeId || ''}
-                            />
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">
-                              Inicio (seg)
-                            </label>
-                            <Input
-                              name="startTime"
-                              type="number"
-                              defaultValue={song.startTime || ''}
-                            />
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">
-                              Duración (seg)
-                            </label>
-                            <Input
-                              name="duration"
-                              type="number"
-                              defaultValue={song.duration || ''}
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button type="button" variant="outline">
-                              Cancelar
-                            </Button>
-                          </DialogClose>
-                          <Button type="submit">Guardar</Button>
-                        </DialogFooter>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                  <form action={deleteSong}>
-                    <input type="hidden" name="id" value={song.id} />
-                    <input type="hidden" name="genreId" value={song.genreId} />
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </form>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex flex-wrap gap-1">
-                <Badge>{song.genre.name}</Badge>
-                <Badge variant="outline">
-                  {song.key} {song.mode === 'major' ? 'Mayor' : 'menor'}
-                </Badge>
-                {song.year && <Badge variant="secondary">{song.year}</Badge>}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Progresión: {song.progression.name}
-              </div>
-              <Badge
-                variant={
-                  song.difficulty === 'beginner'
-                    ? 'default'
-                    : song.difficulty === 'intermediate'
-                      ? 'secondary'
-                      : 'destructive'
-                }
-              >
-                {song.difficulty === 'beginner'
-                  ? 'Principiante'
-                  : song.difficulty === 'intermediate'
-                    ? 'Intermedio'
-                    : 'Avanzado'}
-              </Badge>
-            </CardContent>
-          </Card>
+          <SongCard
+            key={song.id}
+            song={song}
+            onEdit={() => setEditingSong(song)}
+          />
         ))}
       </div>
+
+      <Modal isOpen={!!editingSong} onOpenChange={(open) => !open && setEditingSong(null)} size="2xl" scrollBehavior="inside">
+        <ModalContent>
+          {(onClose) => (
+            <form action={updateSong} onSubmit={() => onClose()}>
+              <ModalHeader>Editar Canción</ModalHeader>
+              <ModalBody className="space-y-4">
+                <input type="hidden" name="id" value={editingSong?.id} />
+                <div className="grid grid-cols-2 gap-4">
+                  <Input name="title" label="Título" defaultValue={editingSong?.title} isRequired />
+                  <Input name="artist" label="Artista" defaultValue={editingSong?.artist} isRequired />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <Select name="key" label="Tonalidad" defaultSelectedKeys={editingSong ? [editingSong.key] : []}>
+                    {NOTES.map((n) => (
+                      <SelectItem key={n}>{n}</SelectItem>
+                    ))}
+                  </Select>
+                  <Select name="mode" label="Modo" defaultSelectedKeys={editingSong ? [editingSong.mode] : []}>
+                    {MODES.map((m) => (
+                      <SelectItem key={m}>{m === 'major' ? 'Mayor' : 'Menor'}</SelectItem>
+                    ))}
+                  </Select>
+                  <Input name="year" label="Año" type="number" defaultValue={editingSong?.year?.toString() || ''} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Select name="genreId" label="Género" defaultSelectedKeys={editingSong ? [editingSong.genreId] : []}>
+                    {genres.map((g) => (
+                      <SelectItem key={g.id}>{g.name}</SelectItem>
+                    ))}
+                  </Select>
+                  <Select name="progressionId" label="Progresión" defaultSelectedKeys={editingSong ? [editingSong.progressionId] : []}>
+                    {progressions.map((p) => (
+                      <SelectItem key={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </Select>
+                </div>
+                <Select name="difficulty" label="Dificultad" defaultSelectedKeys={editingSong ? [editingSong.difficulty] : []}>
+                  {DIFFICULTIES.map((d) => (
+                    <SelectItem key={d}>
+                      {d === 'beginner' ? 'Principiante' : d === 'intermediate' ? 'Intermedio' : 'Avanzado'}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Input name="description" label="Descripción" defaultValue={editingSong?.description || ''} />
+                <div className="grid grid-cols-3 gap-4">
+                  <Input name="youtubeId" label="YouTube ID" defaultValue={editingSong?.youtubeId || ''} />
+                  <Input name="startTime" label="Inicio (seg)" type="number" defaultValue={editingSong?.startTime?.toString() || ''} />
+                  <Input name="duration" label="Duración (seg)" type="number" defaultValue={editingSong?.duration?.toString() || ''} />
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="bordered" onPress={onClose}>
+                  Cancelar
+                </Button>
+                <Button color="primary" type="submit">
+                  Guardar
+                </Button>
+              </ModalFooter>
+            </form>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
+  );
+}
+
+function SongCard({ song, onEdit }: { song: SongWithRelations; onEdit: () => void }) {
+  const difficultyColor = song.difficulty === 'beginner' ? 'primary' : song.difficulty === 'intermediate' ? 'secondary' : 'danger';
+
+  return (
+    <Card>
+      <CardHeader className="pb-2 flex flex-row justify-between items-start">
+        <div>
+          <p className="font-semibold">{song.title}</p>
+          <p className="text-sm text-muted-foreground">{song.artist}</p>
+        </div>
+        <div className="flex gap-1">
+          <Button variant="light" isIconOnly size="sm" onPress={onEdit}>
+            <Pencil className="size-4" />
+          </Button>
+          <form action={deleteSong}>
+            <input type="hidden" name="id" value={song.id} />
+            <input type="hidden" name="genreId" value={song.genreId} />
+            <Button type="submit" variant="light" isIconOnly size="sm" className="text-danger">
+              <Trash2 className="size-4" />
+            </Button>
+          </form>
+        </div>
+      </CardHeader>
+      <CardBody className="space-y-2">
+        <div className="flex flex-wrap gap-1">
+          <Chip size="sm" color="primary">{song.genre.name}</Chip>
+          <Chip size="sm" variant="bordered">
+            {song.key} {song.mode === 'major' ? 'Mayor' : 'menor'}
+          </Chip>
+          {song.year && <Chip size="sm" variant="flat">{song.year}</Chip>}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Progresión: {song.progression.name}
+        </div>
+        <Chip color={difficultyColor} size="sm">
+          {song.difficulty === 'beginner' ? 'Principiante' : song.difficulty === 'intermediate' ? 'Intermedio' : 'Avanzado'}
+        </Chip>
+      </CardBody>
+    </Card>
   );
 }

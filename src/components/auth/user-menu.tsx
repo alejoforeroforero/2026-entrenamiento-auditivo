@@ -4,14 +4,14 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { User, Heart, LogOut, Settings } from 'lucide-react';
 import {
+  Dropdown,
+  DropdownTrigger,
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+  DropdownItem,
+  DropdownSection,
+  Avatar,
+  Button,
+} from '@heroui/react';
 
 export function UserMenu() {
   const { data: session, status } = useSession();
@@ -24,8 +24,8 @@ export function UserMenu() {
 
   if (!session) {
     return (
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/login">Iniciar Sesión</Link>
+      <Button variant="light" size="sm" as={Link} href="/login">
+        Iniciar Sesión
       </Button>
     );
   }
@@ -38,53 +38,68 @@ export function UserMenu() {
     .toUpperCase() || '?';
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={session.user.image || ''} alt={session.user.name || ''} />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <div className="flex flex-col space-y-1 p-2">
-          <p className="text-sm font-medium">{session.user.name}</p>
-          <p className="text-xs text-muted-foreground">{session.user.email}</p>
-        </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/perfil" className="cursor-pointer">
-            <User className="mr-2 h-4 w-4" />
+    <Dropdown placement="bottom-end">
+      <DropdownTrigger>
+        <Avatar
+          as="button"
+          className="h-9 w-9 cursor-pointer transition-transform"
+          src={session.user.image || undefined}
+          name={initials}
+          showFallback
+        />
+      </DropdownTrigger>
+      <DropdownMenu
+        aria-label="User menu"
+        className="w-56"
+        disabledKeys={session.user.isAdmin ? [] : ['admin']}
+      >
+        <DropdownSection showDivider>
+          <DropdownItem key="profile-info" isReadOnly className="cursor-default">
+            <p className="font-medium">{session.user.name}</p>
+            <p className="text-xs text-muted-foreground">{session.user.email}</p>
+          </DropdownItem>
+        </DropdownSection>
+        <DropdownSection showDivider={session.user.isAdmin}>
+          <DropdownItem
+            key="perfil"
+            as={Link}
+            href="/perfil"
+            startContent={<User className="h-4 w-4" />}
+          >
             Perfil
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/perfil/favoritos" className="cursor-pointer">
-            <Heart className="mr-2 h-4 w-4" />
+          </DropdownItem>
+          <DropdownItem
+            key="favoritos"
+            as={Link}
+            href="/perfil/favoritos"
+            startContent={<Heart className="h-4 w-4" />}
+          >
             Favoritos
-          </Link>
-        </DropdownMenuItem>
-        {session.user.isAdmin && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/admin" className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                Administración
-              </Link>
-            </DropdownMenuItem>
-          </>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="cursor-pointer text-red-600 focus:text-red-600"
-          onClick={() => signOut({ callbackUrl: '/' })}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Cerrar Sesión
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </DropdownItem>
+        </DropdownSection>
+        <DropdownSection showDivider className={session.user.isAdmin ? '' : 'hidden'}>
+          <DropdownItem
+            key="admin"
+            as={Link}
+            href="/admin"
+            startContent={<Settings className="h-4 w-4" />}
+            className={session.user.isAdmin ? '' : 'hidden'}
+          >
+            Administración
+          </DropdownItem>
+        </DropdownSection>
+        <DropdownSection>
+          <DropdownItem
+            key="logout"
+            className="text-danger"
+            color="danger"
+            startContent={<LogOut className="h-4 w-4" />}
+            onPress={() => signOut({ callbackUrl: '/' })}
+          >
+            Cerrar Sesión
+          </DropdownItem>
+        </DropdownSection>
+      </DropdownMenu>
+    </Dropdown>
   );
 }

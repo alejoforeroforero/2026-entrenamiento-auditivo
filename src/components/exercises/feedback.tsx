@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@heroui/react';
 import { cn } from '@/lib/utils';
 
 interface FeedbackProps {
@@ -64,7 +64,7 @@ export function Feedback({
               )}
             </div>
 
-            <Button onClick={onNext} size="sm" className="flex-shrink-0">
+            <Button onPress={onNext} size="sm" color="primary" className="flex-shrink-0">
               Siguiente
               <ArrowRight className="w-4 h-4 ml-1" />
             </Button>

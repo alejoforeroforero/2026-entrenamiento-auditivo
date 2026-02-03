@@ -1,8 +1,7 @@
 'use client';
 
 import { Play, Pause, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
+import { Button, Slider } from '@heroui/react';
 
 interface AudioPlayerProps {
   isPlaying: boolean;
@@ -29,10 +28,11 @@ export function AudioPlayer({
     <div className="flex items-center gap-4 p-4 rounded-lg border bg-card">
       <div className="flex items-center gap-2">
         <Button
-          variant={isPlaying ? 'secondary' : 'default'}
-          size="icon"
-          onClick={isPlaying ? onStop : onPlay}
-          disabled={!isReady}
+          variant={isPlaying ? 'flat' : 'solid'}
+          color="primary"
+          isIconOnly
+          onPress={isPlaying ? onStop : onPlay}
+          isDisabled={!isReady}
         >
           {isPlaying ? (
             <Pause className="h-4 w-4" />
@@ -43,10 +43,10 @@ export function AudioPlayer({
 
         {showRepeat && onRepeat && (
           <Button
-            variant="outline"
-            size="icon"
-            onClick={onRepeat}
-            disabled={!isReady || isPlaying}
+            variant="bordered"
+            isIconOnly
+            onPress={onRepeat}
+            isDisabled={!isReady || isPlaying}
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
@@ -58,13 +58,14 @@ export function AudioPlayer({
           {tempo} BPM
         </span>
         <Slider
-          value={[tempo]}
-          onValueChange={([value]) => onTempoChange(value)}
-          min={60}
-          max={180}
+          value={tempo}
+          onChange={(value) => onTempoChange(value as number)}
+          minValue={60}
+          maxValue={180}
           step={5}
           className="w-32"
-          disabled={isPlaying}
+          isDisabled={isPlaying}
+          size="sm"
         />
       </div>
 

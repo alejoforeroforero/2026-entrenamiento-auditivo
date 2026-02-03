@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Drum, Volume2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Chip } from '@heroui/react';
 import { AudioPlayer } from '@/components/audio/audio-player';
 import { RhythmGrid } from '@/components/audio/rhythm-grid';
 import { AnswerOptions } from './answer-options';
@@ -96,9 +96,9 @@ export function RhythmExercise({ exercise, onComplete }: RhythmExerciseProps) {
           <h2 className="text-lg font-semibold">Identifica el Ritmo</h2>
         </div>
         {exercise.genre && (
-          <Badge variant="outline" className="capitalize">
+          <Chip variant="bordered" className="capitalize">
             {exercise.genre}
-          </Badge>
+          </Chip>
         )}
       </div>
 

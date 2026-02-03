@@ -1,8 +1,7 @@
 'use client';
 
 import { Piano, Music2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardBody, Button } from '@heroui/react';
 import { QuizMode } from '@/types/quiz';
 import { cn } from '@/lib/utils';
 
@@ -63,26 +62,26 @@ interface ModeCardProps {
 function ModeCard({ mode, title, description, icon, onSelect, isLoading }: ModeCardProps) {
   return (
     <Card
+      isHoverable
       className={cn(
-        'cursor-pointer transition-all hover:border-primary/50 hover:shadow-md',
+        'transition-all',
         isLoading && 'pointer-events-none opacity-50'
       )}
-      onClick={onSelect}
     >
-      <CardHeader className="text-center pb-2">
+      <CardHeader className="flex flex-col items-center text-center pb-2">
         <div className="flex justify-center mb-4">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
             {icon}
           </div>
         </div>
-        <CardTitle className="text-xl">{title}</CardTitle>
+        <p className="text-xl font-semibold">{title}</p>
       </CardHeader>
-      <CardContent className="text-center">
-        <p className="text-sm text-muted-foreground mb-4">{description}</p>
-        <Button className="w-full" disabled={isLoading}>
+      <CardBody className="text-center">
+        <p className="text-sm text-default-500 mb-4">{description}</p>
+        <Button color="primary" className="w-full" isDisabled={isLoading} onPress={onSelect}>
           {isLoading ? 'Cargando...' : 'Comenzar'}
         </Button>
-      </CardContent>
+      </CardBody>
     </Card>
   );
 }

@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@heroui/react';
 import { cn } from '@/lib/utils';
 import { toggleFavorite } from '@/app/perfil/actions';
 
@@ -20,9 +20,7 @@ export function FavoriteButton({ songId, initialFavorited = false, className }: 
   const [isPending, startTransition] = useTransition();
   const [favorited, setFavorited] = useState(initialFavorited);
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-
+  const handleClick = () => {
     if (!session) {
       router.push('/login');
       return;
@@ -38,11 +36,12 @@ export function FavoriteButton({ songId, initialFavorited = false, className }: 
 
   return (
     <Button
-      variant="ghost"
-      size="icon"
-      className={cn('h-8 w-8', className)}
-      onClick={handleClick}
-      disabled={isPending}
+      variant="light"
+      isIconOnly
+      size="sm"
+      className={cn('h-8 w-8 min-w-8', className)}
+      onPress={handleClick}
+      isDisabled={isPending}
     >
       <Heart
         className={cn(

@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { Play, Square, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Play, Square, Search, Shuffle, Music2 } from 'lucide-react';
+import { Button, Input, Card, CardBody, Chip } from '@heroui/react';
 import { SongPlayerCard } from '@/components/songs/song-player-card';
 import { useTone } from '@/hooks/useTone';
 import { buildProgression, getRandomKey } from '@/lib/music';
-import { RomanNumeral } from '@/types/music';
+import { RomanNumeral, NoteName } from '@/types/music';
 
 interface Song {
   id: string;
@@ -37,6 +36,7 @@ interface ProgressionDetailProps {
 export function ProgressionDetail({ genre, progression, songs, favoriteIds = [] }: ProgressionDetailProps) {
   const favoriteSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentKey, setCurrentKey] = useState<NoteName | null>(null);
   const { initialize, isReady, playProgression, stop, isPlaying } = useTone();
 
   const filteredSongs = useMemo(() => {
@@ -60,67 +60,103 @@ export function ProgressionDetail({ genre, progression, songs, favoriteIds = [] 
     }
 
     const key = getRandomKey();
+    setCurrentKey(key);
     const mode = progression.numerals[0] === 'i' || progression.numerals[0] === 'iv' ? 'minor' : 'major';
     const chords = buildProgression(key, progression.numerals as RomanNumeral[], mode);
     playProgression(chords, 60);
   }, [progression, isReady, initialize, isPlaying, stop, playProgression]);
 
   return (
-    <div className="max-w-2xl space-y-6 md:space-y-10">
+    <div className="max-w-2xl space-y-6 md:space-y-8">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           {progression.name}
         </h1>
         {progression.description && (
-          <p className="text-muted-foreground mt-1.5 md:mt-2 text-base md:text-lg">
+          <p className="text-default-500 mt-1.5 md:mt-2 text-base md:text-lg">
             {progression.description}
           </p>
         )}
       </div>
 
-      <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-card/50 border border-border/50">
-        <div className="flex items-center justify-center">
-          <Button
-            size="default"
-            className="gap-2 h-10 px-5 rounded-lg text-sm glow hover:glow transition-all duration-300"
-            onClick={handlePlay}
-          >
-            {isPlaying ? (
-              <>
-                <Square className="w-4 h-4" />
-                Detener
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4" />
-                Escuchar progresión
-              </>
-            )}
-          </Button>
+      <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
+        <Button
+          isIconOnly
+          color="primary"
+          variant={isPlaying ? 'flat' : 'solid'}
+          radius="full"
+          size="lg"
+          onPress={handlePlay}
+          className={!isPlaying ? 'shadow-lg shadow-primary/30' : ''}
+        >
+          {isPlaying ? <Square className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+        </Button>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            {progression.numerals.map((numeral, index) => (
+              <span key={index} className="flex items-center gap-1">
+                <Chip
+                  size="sm"
+                  variant={isPlaying ? 'solid' : 'flat'}
+                  color={isPlaying ? 'primary' : 'default'}
+                  classNames={{
+                    base: isPlaying ? 'animate-pulse' : '',
+                  }}
+                >
+                  {numeral}
+                </Chip>
+                {index < progression.numerals.length - 1 && (
+                  <span className="text-default-400 text-xs">→</span>
+                )}
+              </span>
+            ))}
+          </div>
+          {currentKey && (
+            <p className="text-xs text-default-500 mt-1">
+              Tonalidad: {currentKey}
+            </p>
+          )}
         </div>
+
+        <Button
+          isIconOnly
+          variant="light"
+          size="sm"
+          onPress={handlePlay}
+          className="text-default-500"
+          isDisabled={isPlaying}
+        >
+          <Shuffle className="w-4 h-4" />
+        </Button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar canciones..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 md:pl-11 h-10 md:h-12 rounded-xl bg-card/50 border-border/50 focus:border-primary/50"
-        />
-      </div>
+      <Input
+        placeholder="Buscar canciones..."
+        value={searchQuery}
+        onValueChange={setSearchQuery}
+        startContent={<Search className="h-4 w-4 text-default-400" />}
+        variant="bordered"
+        radius="lg"
+        size="lg"
+        classNames={{
+          inputWrapper: "bg-content1/50",
+        }}
+      />
 
-      <div className="space-y-4 md:space-y-5">
-        <h2 className="text-sm font-medium text-muted-foreground">
+      <div className="space-y-4">
+        <p className="text-sm font-medium text-default-500">
           {filteredSongs.length} {filteredSongs.length === 1 ? 'canción' : 'canciones'}
-        </h2>
+        </p>
 
         {filteredSongs.length === 0 ? (
-          <div className="text-center py-8 md:py-12">
-            <p className="text-muted-foreground">
-              {searchQuery ? 'No se encontraron canciones' : 'No hay canciones con esta progresión en este género'}
-            </p>
-          </div>
+          <Card className="bg-content1/30">
+            <CardBody className="text-center py-12">
+              <p className="text-default-500">
+                {searchQuery ? 'No se encontraron canciones' : 'No hay canciones con esta progresión en este género'}
+              </p>
+            </CardBody>
+          </Card>
         ) : (
           <div className="space-y-3">
             {filteredSongs.map((song) => (

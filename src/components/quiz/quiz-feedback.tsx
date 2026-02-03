@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, ArrowRight, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@heroui/react';
 import { cn } from '@/lib/utils';
 
 interface QuizFeedbackProps {
@@ -86,12 +86,12 @@ export function QuizFeedback({
 
             <div className="flex gap-2 flex-shrink-0">
               {canRetry ? (
-                <Button onClick={onRetry} size="sm" variant="outline" className="h-8 text-xs">
+                <Button onPress={onRetry} size="sm" variant="bordered" className="h-8 text-xs">
                   <RotateCcw className="w-3.5 h-3.5 mr-1" />
                   Reintentar
                 </Button>
               ) : (
-                <Button onClick={onNext} size="sm" className="h-8 text-xs">
+                <Button onPress={onNext} size="sm" color="primary" className="h-8 text-xs">
                   Siguiente
                   <ArrowRight className="w-3.5 h-3.5 ml-1" />
                 </Button>

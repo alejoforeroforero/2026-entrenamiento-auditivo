@@ -2,29 +2,27 @@
 
 import { signIn } from 'next-auth/react';
 import { Headphones } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button, Card, CardHeader, CardBody } from '@heroui/react';
 
 export default function LoginPage() {
   return (
     <div className="container flex items-center justify-center min-h-[calc(100vh-5rem)] px-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground">
-              <Headphones className="w-8 h-8" />
-            </div>
+        <CardHeader className="flex flex-col items-center gap-2 pt-6">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground">
+            <Headphones className="w-8 h-8" />
           </div>
-          <CardTitle className="text-2xl">Bienvenido</CardTitle>
-          <CardDescription>
+          <p className="text-2xl font-semibold">Bienvenido</p>
+          <p className="text-default-500">
             Inicia sesión para guardar tu progreso y favoritos
-          </CardDescription>
+          </p>
         </CardHeader>
-        <CardContent>
+        <CardBody>
           <Button
             className="w-full"
             size="lg"
-            onClick={() => signIn('google', { callbackUrl: '/' })}
+            color="primary"
+            onPress={() => signIn('google', { callbackUrl: '/' })}
           >
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path
@@ -46,7 +44,7 @@ export default function LoginPage() {
             </svg>
             Continuar con Google
           </Button>
-        </CardContent>
+        </CardBody>
       </Card>
     </div>
   );

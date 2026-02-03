@@ -3,8 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Square, Trash2, Volume2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button, Chip } from '@heroui/react';
 import { QuizProgress } from './quiz-progress';
 import { QuizAttempts } from './quiz-attempts';
 import { QuizFeedback } from './quiz-feedback';
@@ -127,9 +126,9 @@ export function QuizQuestionComponent({
       <div className="flex items-center justify-between">
         <QuizAttempts used={currentAttempts} max={MAX_ATTEMPTS} />
         {mode === 'piano' && playKey && (
-          <Badge variant="outline">
+          <Chip variant="bordered">
             Tonalidad: {playKey}
-          </Badge>
+          </Chip>
         )}
       </div>
 
@@ -166,7 +165,7 @@ export function QuizQuestionComponent({
           </h3>
         </div>
 
-        <div className="flex gap-1.5 md:gap-2 min-h-[40px] md:min-h-[48px] flex-wrap">
+        <div className="flex gap-1 md:gap-1.5 min-h-[36px] md:min-h-[44px] flex-wrap">
           {Array.from({ length: 8 }).map((_, index) => {
             const chord = currentAnswer[index];
             const isWithinProgression = index < question.correctAnswer.length;
@@ -177,7 +176,7 @@ export function QuizQuestionComponent({
                 onClick={() => chord && handleRemoveLastChord()}
                 disabled={!chord || feedbackState.show}
                 className={cn(
-                  'w-9 h-9 md:w-11 md:h-11 rounded-lg md:rounded-xl font-semibold text-xs md:text-sm transition-all duration-200 border-2',
+                  'w-8 h-8 md:w-10 md:h-10 rounded-md md:rounded-lg font-semibold text-xs md:text-sm transition-all duration-200 border-2',
                   chord
                     ? 'bg-primary/20 text-primary border-primary/50 cursor-pointer hover:scale-105 active:scale-95'
                     : isWithinProgression
@@ -199,8 +198,8 @@ export function QuizQuestionComponent({
               </p>
             </div>
             <Button
-              variant="outline"
-              onClick={handleClearAnswer}
+              variant="bordered"
+              onPress={handleClearAnswer}
               className="gap-1.5 h-8 px-3 rounded-lg bg-secondary/50 border-border/50 text-xs shrink-0"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -209,20 +208,20 @@ export function QuizQuestionComponent({
           </div>
         )}
 
-        <div className="space-y-2 pt-2">
+        <div className="space-y-1.5 pt-1">
           <h3 className="text-xs font-medium text-muted-foreground">
             Selecciona los acordes en orden
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div>
-              <p className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">Mayores</p>
-              <div className="flex flex-wrap gap-1.5 md:gap-2">
+              <p className="text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wide">Mayores</p>
+              <div className="flex flex-wrap gap-1 md:gap-1.5">
                 {MAJOR_CHORDS.map((chord) => (
                   <button
                     key={chord}
                     onClick={() => handleAddChord(chord)}
                     disabled={feedbackState.show || currentAnswer.length >= 8}
-                    className="w-9 h-9 md:w-11 md:h-11 rounded-md md:rounded-lg font-semibold text-xs md:text-sm transition-all duration-150 bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                    className="w-8 h-8 md:w-10 md:h-10 rounded-md md:rounded-lg font-semibold text-xs md:text-sm transition-all duration-150 bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                   >
                     {chord}
                   </button>
@@ -230,14 +229,14 @@ export function QuizQuestionComponent({
               </div>
             </div>
             <div>
-              <p className="text-[10px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">Menores</p>
-              <div className="flex flex-wrap gap-1.5 md:gap-2">
+              <p className="text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wide">Menores</p>
+              <div className="flex flex-wrap gap-1 md:gap-1.5">
                 {MINOR_CHORDS.map((chord) => (
                   <button
                     key={chord}
                     onClick={() => handleAddChord(chord)}
                     disabled={feedbackState.show || currentAnswer.length >= 8}
-                    className="w-9 h-9 md:w-11 md:h-11 rounded-md md:rounded-lg font-semibold text-xs md:text-sm transition-all duration-150 bg-secondary/30 border border-border/40 hover:border-accent/50 hover:bg-accent/10 hover:text-accent text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                    className="w-8 h-8 md:w-10 md:h-10 rounded-md md:rounded-lg font-semibold text-xs md:text-sm transition-all duration-150 bg-secondary/30 border border-border/40 hover:border-accent/50 hover:bg-accent/10 hover:text-accent text-foreground disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
                   >
                     {chord}
                   </button>
@@ -275,13 +274,14 @@ function PianoPlayer({ isPlaying, isReady, onPlay, onStop }: PianoPlayerProps) {
     <div className="p-3 rounded-xl bg-card/50 border border-border/50">
       <div className="flex items-center justify-center">
         <Button
-          size="default"
+          size="md"
+          color="primary"
           className={cn(
             'gap-2 h-10 px-5 rounded-lg',
             !isPlaying && 'glow'
           )}
-          onClick={isPlaying ? onStop : onPlay}
-          disabled={!isReady}
+          onPress={isPlaying ? onStop : onPlay}
+          isDisabled={!isReady}
         >
           {isPlaying ? (
             <>
@@ -316,6 +316,15 @@ function RepertoirePlayer({ youtubeId, startTime, duration, title, artist }: Rep
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const playerId = `quiz-player-${youtubeId}`;
+
+  useEffect(() => {
+    setIsPlaying(false);
+    setIsPlayerReady(false);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, [youtubeId]);
 
   useEffect(() => {
     if (!youtubeId) return;
@@ -415,44 +424,46 @@ function RepertoirePlayer({ youtubeId, startTime, duration, title, artist }: Rep
   }
 
   return (
-    <div className="p-3 rounded-xl bg-card/50 border border-border/50 space-y-2">
-      {title && (
-        <div className="text-center">
-          <p className="font-semibold text-sm">{title}</p>
-          {artist && <p className="text-xs text-muted-foreground">{artist}</p>}
-        </div>
-      )}
-
-      <div
-        ref={containerRef}
-        className="w-full aspect-video bg-secondary/30 relative rounded-lg overflow-hidden border border-border/30 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
-      >
-        {!isPlayerReady && (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
-            Cargando...
-          </div>
-        )}
-      </div>
-
-      <div className="flex justify-center">
-        <Button
-          size="default"
-          className={cn('gap-2 h-9 px-4 rounded-lg text-sm', !isPlaying && 'glow')}
-          onClick={handlePlay}
-          disabled={!isPlayerReady}
+    <div className="p-3 rounded-xl bg-card/50 border border-border/50">
+      <div className="flex gap-3 items-center">
+        <div
+          ref={containerRef}
+          className="w-28 md:w-36 aspect-video bg-secondary/30 relative rounded-lg overflow-hidden border border-border/30 shrink-0 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
         >
-          {isPlaying ? (
-            <>
-              <Square className="w-3.5 h-3.5" />
-              Detener
-            </>
-          ) : (
-            <>
-              <Play className="w-3.5 h-3.5" />
-              Reproducir fragmento
-            </>
+          {!isPlayerReady && (
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-xs">
+              ...
+            </div>
           )}
-        </Button>
+        </div>
+
+        <div className="flex-1 min-w-0">
+          {title && (
+            <div>
+              <p className="font-semibold text-sm truncate">{title}</p>
+              {artist && <p className="text-xs text-muted-foreground truncate">{artist}</p>}
+            </div>
+          )}
+          <Button
+            size="sm"
+            color="primary"
+            className={cn('gap-1.5 h-8 px-3 rounded-lg text-xs mt-2', !isPlaying && 'shadow-md shadow-primary/20')}
+            onPress={handlePlay}
+            isDisabled={!isPlayerReady}
+          >
+            {isPlaying ? (
+              <>
+                <Square className="w-3 h-3" />
+                Detener
+              </>
+            ) : (
+              <>
+                <Play className="w-3 h-3" />
+                Reproducir
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

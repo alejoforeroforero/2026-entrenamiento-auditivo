@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Music, Volume2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Chip } from '@heroui/react';
 import { AudioPlayer } from '@/components/audio/audio-player';
 import { PianoVisualization } from '@/components/audio/piano-visualization';
 import { AnswerOptions } from './answer-options';
@@ -97,9 +97,9 @@ export function ProgressionExercise({ exercise, onComplete }: ProgressionExercis
           <h2 className="text-lg font-semibold">Identifica la Progresión</h2>
         </div>
         {exercise.genre && (
-          <Badge variant="outline" className="capitalize">
+          <Chip variant="bordered" className="capitalize">
             {exercise.genre}
-          </Badge>
+          </Chip>
         )}
       </div>
 

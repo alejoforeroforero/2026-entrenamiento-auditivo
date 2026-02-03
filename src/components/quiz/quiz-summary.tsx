@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, RotateCcw, Home, User, Trophy } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button, Card, CardHeader, CardBody } from '@heroui/react';
 import { QuizSummaryItem } from '@/types/quiz';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +38,7 @@ export function QuizSummary({
       className="max-w-2xl mx-auto space-y-6"
     >
       <Card className="text-center">
-        <CardHeader className="pb-2">
+        <CardHeader className="flex flex-col items-center pb-2">
           <div className="flex justify-center mb-4">
             <div
               className={cn(
@@ -50,9 +49,9 @@ export function QuizSummary({
               <Trophy className={cn('w-10 h-10', grade.textColor)} />
             </div>
           </div>
-          <CardTitle className="text-3xl">{grade.label}</CardTitle>
+          <p className="text-3xl font-semibold">{grade.label}</p>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardBody className="space-y-4">
           <div className="text-5xl font-bold">
             {totalCorrect}/{totalQuestions}
           </div>
@@ -70,14 +69,14 @@ export function QuizSummary({
               </p>
             </div>
           )}
-        </CardContent>
+        </CardBody>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Resumen de respuestas</CardTitle>
+          <p className="text-lg font-semibold">Resumen de respuestas</p>
         </CardHeader>
-        <CardContent>
+        <CardBody>
           <div className="space-y-2">
             {items.map((item, idx) => (
               <div
@@ -104,27 +103,23 @@ export function QuizSummary({
               </div>
             ))}
           </div>
-        </CardContent>
+        </CardBody>
       </Card>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <Button onClick={onRestart} className="flex-1">
+        <Button onPress={onRestart} color="primary" className="flex-1">
           <RotateCcw className="w-4 h-4 mr-2" />
           Reiniciar Quiz
         </Button>
-        <Link href={`/${genre}`} className="flex-1">
-          <Button variant="outline" className="w-full">
-            <Home className="w-4 h-4 mr-2" />
-            Volver al género
-          </Button>
-        </Link>
+        <Button variant="bordered" as={Link} href={`/${genre}`} className="flex-1">
+          <Home className="w-4 h-4 mr-2" />
+          Volver al género
+        </Button>
         {isAuthenticated && (
-          <Link href="/perfil" className="flex-1">
-            <Button variant="outline" className="w-full">
-              <User className="w-4 h-4 mr-2" />
-              Ver perfil
-            </Button>
-          </Link>
+          <Button variant="bordered" as={Link} href="/perfil" className="flex-1">
+            <User className="w-4 h-4 mr-2" />
+            Ver perfil
+          </Button>
         )}
       </div>
     </motion.div>
