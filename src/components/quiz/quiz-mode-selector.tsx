@@ -1,6 +1,6 @@
 'use client';
 
-import { Piano, Music2 } from 'lucide-react';
+import { IconPiano, IconRepertorio } from '@/components/icons';
 import { Card, CardHeader, CardBody, Button } from '@heroui/react';
 import { QuizMode } from '@/types/quiz';
 import { cn } from '@/lib/utils';
@@ -29,7 +29,7 @@ export function QuizModeSelector({ onSelectMode, isLoading, genreName }: QuizMod
           mode="piano"
           title="Modo Piano"
           description="Escucha la progresión sintetizada e identifica los acordes"
-          icon={<Piano className="w-8 h-8" />}
+          icon={<IconPiano className="w-8 h-8" />}
           onSelect={() => onSelectMode('piano')}
           isLoading={isLoading}
         />
@@ -37,7 +37,7 @@ export function QuizModeSelector({ onSelectMode, isLoading, genreName }: QuizMod
           mode="repertoire"
           title="Modo Repertorio"
           description="Escucha fragmentos de canciones reales e identifica la progresión"
-          icon={<Music2 className="w-8 h-8" />}
+          icon={<IconRepertorio className="w-8 h-8" />}
           onSelect={() => onSelectMode('repertoire')}
           isLoading={isLoading}
         />

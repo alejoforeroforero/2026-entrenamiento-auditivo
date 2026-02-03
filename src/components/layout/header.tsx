@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Headphones } from 'lucide-react';
+import { LogoHeadphones } from '@/components/icons/logo-headphones';
 import {
   Navbar,
   NavbarBrand,
@@ -46,7 +46,7 @@ export function Header() {
       >
         <NavbarBrand as={Link} href="/" className="gap-3 cursor-pointer">
           <div className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-primary text-primary-foreground">
-            <Headphones className="w-5 h-5 md:w-6 md:h-6" />
+            <LogoHeadphones className="w-5 h-5 md:w-6 md:h-6" />
           </div>
           <span className="text-xl md:text-2xl font-bold tracking-tight hidden sm:inline">
             Progresiones

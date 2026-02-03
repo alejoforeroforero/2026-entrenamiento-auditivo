@@ -78,9 +78,11 @@ export async function getGenreStats(genreId: string) {
   return { progressions, songs };
 }
 
+const MIN_SONGS_FOR_ACTIVE_GENRE = 5;
+
 export async function hasContentForGenre(genreId: string) {
   const count = await prisma.song.count({
     where: { genreId },
   });
-  return count > 0;
+  return count >= MIN_SONGS_FOR_ACTIVE_GENRE;
 }
