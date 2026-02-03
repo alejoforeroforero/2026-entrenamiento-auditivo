@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, use } from 'react';
-import { Play, RotateCcw, SkipForward, Check, X, Piano, Music, Pause, Trophy } from 'lucide-react';
+import { Play, RotateCcw, SkipForward, Check, X, Pause } from 'lucide-react';
+import { IconPiano, IconRepertorio, IconQuiz } from '@/components/icons';
 import { Button, Tabs, Tab } from '@heroui/react';
+import { toast } from 'sonner';
 import { useTone } from '@/hooks/useTone';
 import { buildProgression, getRandomKey } from '@/lib/music';
 import { Chord, NoteName, RomanNumeral } from '@/types/music';
@@ -165,6 +167,16 @@ function PianoMode({ genre }: { genre: string }) {
 
     setIsCorrect(correctChords);
     setHasChecked(true);
+
+    if (correctChords) {
+      toast.success('¡Correcto!', {
+        description: `${currentProgression.name} en ${currentKey}`,
+      });
+    } else {
+      toast.error('Incorrecto', {
+        description: `Era: ${currentProgression.numerals.join(' → ')}`,
+      });
+    }
   };
 
   const handleClear = () => {
@@ -301,33 +313,7 @@ function PianoMode({ genre }: { genre: string }) {
           })}
         </div>
 
-        {hasChecked && (
-          <div className={`p-2.5 md:p-4 rounded-lg border ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30'}`}>
-            <div className="flex items-center justify-between">
-              <p className={`font-semibold text-sm ${isCorrect ? 'text-success' : 'text-destructive'}`}>
-                {isCorrect ? '¡Correcto!' : 'Incorrecto'}
-              </p>
-              {currentProgression && (
-                <p className="text-xs text-muted-foreground">
-                  {currentProgression.name} en {currentKey}
-                </p>
-              )}
-            </div>
-            {!isCorrect && currentProgression && (
-              <div className="flex gap-1 md:gap-2 flex-wrap mt-2">
-                {currentProgression.numerals.map((numeral, index) => (
-                  <div
-                    key={index}
-                    className="w-8 h-8 md:w-10 md:h-10 rounded-lg font-semibold text-xs bg-success/10 text-success border border-success/30 flex items-center justify-center"
-                  >
-                    {numeral}
-                  </div>
-                ))}
               </div>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
@@ -489,6 +475,16 @@ function RepertoireMode({ genre }: { genre: string }) {
 
     setIsCorrect(correctChords);
     setHasChecked(true);
+
+    if (correctChords) {
+      toast.success('¡Correcto!', {
+        description: currentSong.title,
+      });
+    } else {
+      toast.error('Incorrecto', {
+        description: `Era: ${currentProgression.numerals.join(' → ')}`,
+      });
+    }
   };
 
   const handleClear = () => {
@@ -646,33 +642,7 @@ function RepertoireMode({ genre }: { genre: string }) {
           })}
         </div>
 
-        {hasChecked && (
-          <div className={`p-2.5 md:p-4 rounded-lg border ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-destructive/10 border-destructive/30'}`}>
-            <div className="flex items-center justify-between">
-              <p className={`font-semibold text-sm ${isCorrect ? 'text-success' : 'text-destructive'}`}>
-                {isCorrect ? '¡Correcto!' : 'Incorrecto'}
-              </p>
-              {currentSong && (
-                <p className="text-xs text-muted-foreground truncate ml-2">
-                  {currentSong.title}
-                </p>
-              )}
-            </div>
-            {!isCorrect && currentProgression && (
-              <div className="flex gap-1 md:gap-2 flex-wrap mt-2">
-                {currentProgression.numerals.map((numeral, index) => (
-                  <div
-                    key={index}
-                    className="w-8 h-8 md:w-10 md:h-10 rounded-lg font-semibold text-xs bg-success/10 text-success border border-success/30 flex items-center justify-center"
-                  >
-                    {numeral}
-                  </div>
-                ))}
               </div>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
@@ -701,8 +671,8 @@ export default function PracticarPage({
         color="primary"
         classNames={{
           tabList: 'gap-2 p-1 bg-content1/50 border border-divider rounded-xl',
-          tab: 'px-4 py-2 rounded-lg data-[selected=true]:bg-primary/15',
-          cursor: 'bg-primary/20 rounded-lg',
+          tab: 'px-4 py-2 rounded-lg text-foreground data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground',
+          cursor: 'bg-primary rounded-lg',
           panel: 'pt-6',
         }}
       >
@@ -710,7 +680,7 @@ export default function PracticarPage({
           key="piano"
           title={
             <div className="flex items-center gap-2">
-              <Piano className="w-4 h-4" />
+              <IconPiano className="w-4 h-4" />
               <span>Piano</span>
             </div>
           }
@@ -721,7 +691,7 @@ export default function PracticarPage({
           key="repertoire"
           title={
             <div className="flex items-center gap-2">
-              <Music className="w-4 h-4" />
+              <IconRepertorio className="w-4 h-4" />
               <span>Repertorio</span>
             </div>
           }
@@ -732,7 +702,7 @@ export default function PracticarPage({
           key="quiz"
           title={
             <div className="flex items-center gap-2">
-              <Trophy className="w-4 h-4" />
+              <IconQuiz className="w-4 h-4" />
               <span>Quiz</span>
             </div>
           }

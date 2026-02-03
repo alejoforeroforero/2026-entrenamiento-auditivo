@@ -69,3 +69,6 @@ Use the `useTone` hook for React integration - it handles dynamic imports to avo
 - All music types defined in `/types/music.ts`
 - Data files export typed constants (progressions, rhythms, songs)
 - Use musical icons in the UI when appropriate
+
+## Instructions
+- Only take Playwright screenshots when debugging visual errors or verifying UI—not for routine code execution.

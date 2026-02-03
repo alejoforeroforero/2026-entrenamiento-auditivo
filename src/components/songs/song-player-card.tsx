@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Play, Pause, Music } from 'lucide-react';
-import { Button, Card, CardBody, Chip } from '@heroui/react';
+import { Card, CardBody, Chip } from '@heroui/react';
 import { FavoriteButton } from '@/components/favorites/favorite-button';
 
 declare global {
@@ -180,13 +180,28 @@ export function SongPlayerCard({
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <div
             ref={containerRef}
-            className="w-full sm:w-32 md:w-36 aspect-video bg-default-100 relative rounded-xl overflow-hidden shrink-0 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0"
+            className="w-full sm:w-40 md:w-44 aspect-video bg-default-100 relative rounded-xl overflow-hidden shrink-0 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0 group cursor-pointer"
+            onClick={handlePlay}
           >
-            {!isPlayerReady && (
-              <div className="absolute inset-0 flex items-center justify-center text-default-400 text-xs">
-                <Play className="w-6 h-6" />
-              </div>
-            )}
+            <div className="absolute inset-0 z-[5] bg-black/60 pointer-events-none" />
+            <button
+              className={`absolute inset-0 z-10 flex items-center justify-center transition-all ${
+                isPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'
+              }`}
+              disabled={!isPlayerReady}
+            >
+              <span
+                className={`flex items-center justify-center w-14 h-14 rounded-full bg-primary shadow-lg shadow-primary/40 transition-transform ${
+                  !isPlaying && 'group-hover:scale-110'
+                }`}
+              >
+                {isPlaying ? (
+                  <Pause className="w-6 h-6 text-primary-foreground" />
+                ) : (
+                  <Play className="w-6 h-6 text-primary-foreground ml-0.5" />
+                )}
+              </span>
+            </button>
           </div>
 
           <div className="flex-1 min-w-0 flex items-center gap-3">
@@ -210,17 +225,6 @@ export function SongPlayerCard({
               initialFavorited={isFavorited}
               className="shrink-0"
             />
-            <Button
-              isIconOnly
-              variant={isPlaying ? 'flat' : 'solid'}
-              color="primary"
-              onPress={handlePlay}
-              isDisabled={!isPlayerReady}
-              radius="lg"
-              className={`shrink-0 h-11 w-11 min-w-11 ${!isPlaying && 'shadow-lg shadow-primary/30'}`}
-            >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </Button>
           </div>
         </div>
 

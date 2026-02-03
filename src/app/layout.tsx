@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
+import { JetBrains_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import { Header } from "@/components/layout/header";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const zajno = localFont({
+  src: "../../public/fonts/zajno.woff2",
+  variable: "--font-sans",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -41,13 +44,30 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
+        className={`${zajno.variable} ${jetbrainsMono.variable} antialiased min-h-screen bg-background`}
       >
         <AuthProvider>
           <Header />
           <main>
             {children}
           </main>
+          <Toaster
+            position="top-center"
+            theme="dark"
+            toastOptions={{
+              style: {
+                fontFamily: 'var(--font-sans)',
+                fontSize: '16px',
+                padding: '16px 20px',
+              },
+              classNames: {
+                title: 'font-semibold text-base',
+                description: 'text-sm',
+                success: '!bg-success !text-white !border-success',
+                error: '!bg-red-500 !text-white !border-red-400',
+              },
+            }}
+          />
         </AuthProvider>
       </body>
     </html>
