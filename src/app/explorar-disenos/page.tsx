@@ -25,7 +25,6 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Badge,
   Divider,
   Image,
   Progress,
@@ -295,7 +294,7 @@ export default function ExplorarDisenosPage() {
                       title={
                         <div className="flex items-center gap-2">
                           <span>Básico</span>
-                          <Badge content="3" color="primary" size="sm" />
+                          <Chip color="primary" size="sm">3</Chip>
                         </div>
                       }
                     >
@@ -319,7 +318,7 @@ export default function ExplorarDisenosPage() {
                       title={
                         <div className="flex items-center gap-2">
                           <span>Intermedio</span>
-                          <Badge content="2" color="warning" size="sm" />
+                          <Chip color="warning" size="sm">2</Chip>
                         </div>
                       }
                     >
