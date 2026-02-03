@@ -606,9 +606,9 @@ export default function ExplorarDisenosPage() {
                           </Button>
                         </DropdownTrigger>
                         <DropdownMenu>
-                          <DropdownItem>Básico</DropdownItem>
-                          <DropdownItem>Intermedio</DropdownItem>
-                          <DropdownItem>Avanzado</DropdownItem>
+                          <DropdownItem key="basico">Básico</DropdownItem>
+                          <DropdownItem key="intermedio">Intermedio</DropdownItem>
+                          <DropdownItem key="avanzado">Avanzado</DropdownItem>
                         </DropdownMenu>
                       </Dropdown>
                       <div className="flex gap-1">
