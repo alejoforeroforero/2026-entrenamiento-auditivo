@@ -8,9 +8,6 @@ import {
   Button,
   Input,
   Chip,
-  Card,
-  CardHeader,
-  CardBody,
   Modal,
   ModalContent,
   ModalHeader,
@@ -18,9 +15,15 @@ import {
   ModalFooter,
   Select,
   SelectItem,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
   useDisclosure,
 } from '@heroui/react';
-import { Plus, Pencil, Trash2, Music, ListMusic, Disc } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import {
   createGenre,
   updateGenre,
@@ -50,38 +53,22 @@ const MODES = ['major', 'minor'] as const;
 
 export function AdminClient({ genres, progressions, songs }: AdminClientProps) {
   return (
-    <Tabs defaultSelectedKey="genres" classNames={{ panel: 'pt-6' }}>
-      <Tab
-        key="genres"
-        title={
-          <div className="flex items-center gap-2">
-            <Disc className="size-4" />
-            <span>Géneros ({genres.length})</span>
-          </div>
-        }
-      >
+    <Tabs
+      variant="underlined"
+      classNames={{
+        tabList: 'gap-6 border-b border-border',
+        tab: 'px-0 h-10 text-muted-foreground data-[selected=true]:text-danger-500',
+        cursor: 'bg-danger-500',
+        panel: 'pt-6',
+      }}
+    >
+      <Tab key="genres" title="Géneros">
         <GenresTab genres={genres} />
       </Tab>
-      <Tab
-        key="progressions"
-        title={
-          <div className="flex items-center gap-2">
-            <ListMusic className="size-4" />
-            <span>Progresiones ({progressions.length})</span>
-          </div>
-        }
-      >
+      <Tab key="progressions" title="Progresiones">
         <ProgressionsTab progressions={progressions} />
       </Tab>
-      <Tab
-        key="songs"
-        title={
-          <div className="flex items-center gap-2">
-            <Music className="size-4" />
-            <span>Canciones ({songs.length})</span>
-          </div>
-        }
-      >
+      <Tab key="songs" title="Canciones">
         <SongsTab songs={songs} genres={genres} progressions={progressions} />
       </Tab>
     </Tabs>
@@ -94,45 +81,69 @@ function GenresTab({ genres }: { genres: Genre[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Géneros Musicales</h2>
-        <Button color="primary" onPress={createModal.onOpen}>
-          <Plus className="size-4 mr-2" />
-          Nuevo Género
-        </Button>
-        <Modal isOpen={createModal.isOpen} onOpenChange={createModal.onOpenChange}>
-          <ModalContent>
-            {(onClose) => (
-              <form action={createGenre} onSubmit={() => onClose()}>
-                <ModalHeader>Crear Género</ModalHeader>
-                <ModalBody className="space-y-4">
-                  <Input name="id" label="ID (slug)" placeholder="salsa" isRequired />
-                  <Input name="name" label="Nombre" placeholder="Salsa" isRequired />
-                  <Input name="label" label="Etiqueta" placeholder="Salsa Clásica" isRequired />
-                </ModalBody>
-                <ModalFooter>
-                  <Button variant="bordered" onPress={onClose}>
-                    Cancelar
-                  </Button>
-                  <Button color="primary" type="submit">
-                    Crear
-                  </Button>
-                </ModalFooter>
-              </form>
-            )}
-          </ModalContent>
-        </Modal>
-      </div>
+      <Button color="danger" radius="full" onPress={createModal.onOpen}>
+        <Plus className="size-4" />
+        Nuevo Género
+      </Button>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {genres.map((genre) => (
-          <GenreCard
-            key={genre.id}
-            genre={genre}
-            onEdit={() => setEditingGenre(genre)}
-          />
-        ))}
-      </div>
+      <Modal isOpen={createModal.isOpen} onOpenChange={createModal.onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <form action={createGenre} onSubmit={() => onClose()}>
+              <ModalHeader>Crear Género</ModalHeader>
+              <ModalBody className="space-y-4">
+                <Input name="id" label="ID (slug)" placeholder="salsa" isRequired />
+                <Input name="name" label="Nombre" placeholder="Salsa" isRequired />
+                <Input name="label" label="Etiqueta" placeholder="Salsa Clásica" isRequired />
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="bordered" onPress={onClose}>Cancelar</Button>
+                <Button color="danger" type="submit">Crear</Button>
+              </ModalFooter>
+            </form>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Table
+        aria-label="Géneros"
+        classNames={{
+          wrapper: 'bg-card rounded-lg',
+          th: 'bg-transparent text-muted-foreground font-medium text-sm',
+          td: 'py-4',
+        }}
+      >
+        <TableHeader>
+          <TableColumn>ID</TableColumn>
+          <TableColumn>Nombre</TableColumn>
+          <TableColumn>Etiqueta</TableColumn>
+          <TableColumn width={120} align="center">Acciones</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {genres.map((genre) => (
+            <TableRow key={genre.id}>
+              <TableCell>
+                <span className="text-muted-foreground font-mono text-sm">{genre.id}</span>
+              </TableCell>
+              <TableCell>{genre.name}</TableCell>
+              <TableCell>{genre.label}</TableCell>
+              <TableCell>
+                <div className="flex gap-1 justify-center">
+                  <Button variant="light" isIconOnly size="sm" onPress={() => setEditingGenre(genre)}>
+                    <Pencil className="size-4" />
+                  </Button>
+                  <form action={deleteGenre}>
+                    <input type="hidden" name="id" value={genre.id} />
+                    <Button type="submit" variant="light" isIconOnly size="sm" className="text-danger">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </form>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       <Modal isOpen={!!editingGenre} onOpenChange={(open) => !open && setEditingGenre(null)}>
         <ModalContent>
@@ -141,26 +152,12 @@ function GenresTab({ genres }: { genres: Genre[] }) {
               <ModalHeader>Editar Género</ModalHeader>
               <ModalBody className="space-y-4">
                 <input type="hidden" name="id" value={editingGenre?.id} />
-                <Input
-                  name="name"
-                  label="Nombre"
-                  defaultValue={editingGenre?.name}
-                  isRequired
-                />
-                <Input
-                  name="label"
-                  label="Etiqueta"
-                  defaultValue={editingGenre?.label}
-                  isRequired
-                />
+                <Input name="name" label="Nombre" defaultValue={editingGenre?.name} isRequired />
+                <Input name="label" label="Etiqueta" defaultValue={editingGenre?.label} isRequired />
               </ModalBody>
               <ModalFooter>
-                <Button variant="bordered" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button color="primary" type="submit">
-                  Guardar
-                </Button>
+                <Button variant="bordered" onPress={onClose}>Cancelar</Button>
+                <Button color="danger" type="submit">Guardar</Button>
               </ModalFooter>
             </form>
           )}
@@ -170,91 +167,97 @@ function GenresTab({ genres }: { genres: Genre[] }) {
   );
 }
 
-function GenreCard({ genre, onEdit }: { genre: Genre; onEdit: () => void }) {
-  return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row justify-between items-start">
-        <p className="font-semibold">{genre.name}</p>
-        <div className="flex gap-1">
-          <Button variant="light" isIconOnly size="sm" onPress={onEdit}>
-            <Pencil className="size-4" />
-          </Button>
-          <form action={deleteGenre}>
-            <input type="hidden" name="id" value={genre.id} />
-            <Button
-              type="submit"
-              variant="light"
-              isIconOnly
-              size="sm"
-              className="text-danger"
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </form>
-        </div>
-      </CardHeader>
-      <CardBody>
-        <p className="text-sm text-muted-foreground">{genre.label}</p>
-        <Chip variant="bordered" size="sm" className="mt-2">
-          ID: {genre.id}
-        </Chip>
-      </CardBody>
-    </Card>
-  );
-}
-
 function ProgressionsTab({ progressions }: { progressions: Progression[] }) {
   const createModal = useDisclosure();
   const [editingProgression, setEditingProgression] = useState<Progression | null>(null);
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Progresiones Armónicas</h2>
-        <Button color="primary" onPress={createModal.onOpen}>
-          <Plus className="size-4 mr-2" />
-          Nueva Progresión
-        </Button>
-        <Modal isOpen={createModal.isOpen} onOpenChange={createModal.onOpenChange}>
-          <ModalContent>
-            {(onClose) => (
-              <form action={createProgression} onSubmit={() => onClose()}>
-                <ModalHeader>Crear Progresión</ModalHeader>
-                <ModalBody className="space-y-4">
-                  <Input name="name" label="Nombre" placeholder="I-IV-V-I" isRequired />
-                  <Input name="numerals" label="Numerales (separados por coma)" placeholder="I, IV, V, I" isRequired />
-                  <Input name="description" label="Descripción" placeholder="Progresión clásica..." />
-                  <Select name="difficulty" label="Dificultad" defaultSelectedKeys={['beginner']}>
-                    {DIFFICULTIES.map((d) => (
-                      <SelectItem key={d}>
-                        {d === 'beginner' ? 'Principiante' : d === 'intermediate' ? 'Intermedio' : 'Avanzado'}
-                      </SelectItem>
-                    ))}
-                  </Select>
-                </ModalBody>
-                <ModalFooter>
-                  <Button variant="bordered" onPress={onClose}>
-                    Cancelar
-                  </Button>
-                  <Button color="primary" type="submit">
-                    Crear
-                  </Button>
-                </ModalFooter>
-              </form>
-            )}
-          </ModalContent>
-        </Modal>
-      </div>
+      <Button color="danger" radius="full" onPress={createModal.onOpen}>
+        <Plus className="size-4" />
+        Nueva Progresión
+      </Button>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {progressions.map((prog) => (
-          <ProgressionCard
-            key={prog.id}
-            progression={prog}
-            onEdit={() => setEditingProgression(prog)}
-          />
-        ))}
-      </div>
+      <Modal isOpen={createModal.isOpen} onOpenChange={createModal.onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <form action={createProgression} onSubmit={() => onClose()}>
+              <ModalHeader>Crear Progresión</ModalHeader>
+              <ModalBody className="space-y-4">
+                <Input name="name" label="Nombre" placeholder="I-IV-V-I" isRequired />
+                <Input name="numerals" label="Numerales (separados por coma)" placeholder="I, IV, V, I" isRequired />
+                <Input name="description" label="Descripción" placeholder="Progresión clásica..." />
+                <Select name="difficulty" label="Dificultad" defaultSelectedKeys={['beginner']}>
+                  {DIFFICULTIES.map((d) => (
+                    <SelectItem key={d}>
+                      {d === 'beginner' ? 'Principiante' : d === 'intermediate' ? 'Intermedio' : 'Avanzado'}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="bordered" onPress={onClose}>Cancelar</Button>
+                <Button color="danger" type="submit">Crear</Button>
+              </ModalFooter>
+            </form>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Table
+        aria-label="Progresiones"
+        classNames={{
+          wrapper: 'bg-card rounded-lg',
+          th: 'bg-transparent text-muted-foreground font-medium text-sm',
+          td: 'py-4',
+        }}
+      >
+        <TableHeader>
+          <TableColumn>Nombre</TableColumn>
+          <TableColumn>Numerales</TableColumn>
+          <TableColumn>Descripción</TableColumn>
+          <TableColumn>Dificultad</TableColumn>
+          <TableColumn width={120} align="center">Acciones</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {progressions.map((prog) => {
+            const difficultyColor = prog.difficulty === 'beginner' ? 'primary' : prog.difficulty === 'intermediate' ? 'secondary' : 'danger';
+            return (
+              <TableRow key={prog.id}>
+                <TableCell className="font-medium">{prog.name}</TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {prog.numerals.map((n, i) => (
+                      <Chip key={i} size="sm" variant="flat">{n}</Chip>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="text-muted-foreground text-sm">{prog.description || '—'}</span>
+                </TableCell>
+                <TableCell>
+                  <Chip color={difficultyColor} size="sm">
+                    {prog.difficulty === 'beginner' ? 'Principiante' : prog.difficulty === 'intermediate' ? 'Intermedio' : 'Avanzado'}
+                  </Chip>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1 justify-center">
+                    <Button variant="light" isIconOnly size="sm" onPress={() => setEditingProgression(prog)}>
+                      <Pencil className="size-4" />
+                    </Button>
+                    <form action={deleteProgression}>
+                      <input type="hidden" name="id" value={prog.id} />
+                      <Button type="submit" variant="light" isIconOnly size="sm" className="text-danger">
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </form>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
 
       <Modal isOpen={!!editingProgression} onOpenChange={(open) => !open && setEditingProgression(null)}>
         <ModalContent>
@@ -275,58 +278,14 @@ function ProgressionsTab({ progressions }: { progressions: Progression[] }) {
                 </Select>
               </ModalBody>
               <ModalFooter>
-                <Button variant="bordered" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button color="primary" type="submit">
-                  Guardar
-                </Button>
+                <Button variant="bordered" onPress={onClose}>Cancelar</Button>
+                <Button color="danger" type="submit">Guardar</Button>
               </ModalFooter>
             </form>
           )}
         </ModalContent>
       </Modal>
     </div>
-  );
-}
-
-function ProgressionCard({ progression, onEdit }: { progression: Progression; onEdit: () => void }) {
-  const difficultyColor = progression.difficulty === 'beginner' ? 'primary' : progression.difficulty === 'intermediate' ? 'secondary' : 'danger';
-
-  return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row justify-between items-start">
-        <p className="font-semibold">{progression.name}</p>
-        <div className="flex gap-1">
-          <Button variant="light" isIconOnly size="sm" onPress={onEdit}>
-            <Pencil className="size-4" />
-          </Button>
-          <form action={deleteProgression}>
-            <input type="hidden" name="id" value={progression.id} />
-            <Button type="submit" variant="light" isIconOnly size="sm" className="text-danger">
-              <Trash2 className="size-4" />
-            </Button>
-          </form>
-        </div>
-      </CardHeader>
-      <CardBody>
-        <div className="flex flex-wrap gap-1 mb-2">
-          {progression.numerals.map((n, i) => (
-            <Chip key={i} size="sm" variant="flat">
-              {n}
-            </Chip>
-          ))}
-        </div>
-        {progression.description && (
-          <p className="text-sm text-muted-foreground mb-2">
-            {progression.description}
-          </p>
-        )}
-        <Chip color={difficultyColor} size="sm">
-          {progression.difficulty === 'beginner' ? 'Principiante' : progression.difficulty === 'intermediate' ? 'Intermedio' : 'Avanzado'}
-        </Chip>
-      </CardBody>
-    </Card>
   );
 }
 
@@ -350,95 +309,127 @@ function SongsTab({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center flex-wrap gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold">Canciones</h2>
+          <Button color="danger" radius="full" onPress={createModal.onOpen}>
+            <Plus className="size-4" />
+            Nueva Canción
+          </Button>
           <Select
             selectedKeys={[filterGenre]}
             onSelectionChange={(keys) => setFilterGenre(Array.from(keys)[0] as string)}
-            className="w-40"
+            className="w-44"
             size="sm"
             items={[{ id: 'all', name: 'Todos' }, ...genres]}
           >
             {(item) => <SelectItem key={item.id}>{item.name}</SelectItem>}
           </Select>
         </div>
-        <Button color="primary" onPress={createModal.onOpen}>
-          <Plus className="size-4 mr-2" />
-          Nueva Canción
-        </Button>
-        <Modal isOpen={createModal.isOpen} onOpenChange={createModal.onOpenChange} size="2xl" scrollBehavior="inside">
-          <ModalContent>
-            {(onClose) => (
-              <form action={createSong} onSubmit={() => onClose()}>
-                <ModalHeader>Crear Canción</ModalHeader>
-                <ModalBody className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input name="title" label="Título" isRequired />
-                    <Input name="artist" label="Artista" isRequired />
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <Select name="key" label="Tonalidad" defaultSelectedKeys={['C']}>
-                      {NOTES.map((n) => (
-                        <SelectItem key={n}>{n}</SelectItem>
-                      ))}
-                    </Select>
-                    <Select name="mode" label="Modo" defaultSelectedKeys={['major']}>
-                      {MODES.map((m) => (
-                        <SelectItem key={m}>{m === 'major' ? 'Mayor' : 'Menor'}</SelectItem>
-                      ))}
-                    </Select>
-                    <Input name="year" label="Año" type="number" placeholder="1975" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Select name="genreId" label="Género" isRequired placeholder="Seleccionar...">
-                      {genres.map((g) => (
-                        <SelectItem key={g.id}>{g.name}</SelectItem>
-                      ))}
-                    </Select>
-                    <Select name="progressionId" label="Progresión" isRequired placeholder="Seleccionar...">
-                      {progressions.map((p) => (
-                        <SelectItem key={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </Select>
-                  </div>
-                  <Select name="difficulty" label="Dificultad" defaultSelectedKeys={['beginner']}>
-                    {DIFFICULTIES.map((d) => (
-                      <SelectItem key={d}>
-                        {d === 'beginner' ? 'Principiante' : d === 'intermediate' ? 'Intermedio' : 'Avanzado'}
-                      </SelectItem>
-                    ))}
-                  </Select>
-                  <Input name="description" label="Descripción" placeholder="Opcional..." />
-                  <div className="grid grid-cols-3 gap-4">
-                    <Input name="youtubeId" label="YouTube ID" placeholder="dQw4w9WgXcQ" />
-                    <Input name="startTime" label="Inicio (segundos)" type="number" placeholder="0" />
-                    <Input name="duration" label="Duración (segundos)" type="number" placeholder="30" />
-                  </div>
-                </ModalBody>
-                <ModalFooter>
-                  <Button variant="bordered" onPress={onClose}>
-                    Cancelar
-                  </Button>
-                  <Button color="primary" type="submit">
-                    Crear
-                  </Button>
-                </ModalFooter>
-              </form>
-            )}
-          </ModalContent>
-        </Modal>
+        <span className="text-sm text-muted-foreground">{filteredSongs.length} canciones</span>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredSongs.map((song) => (
-          <SongCard
-            key={song.id}
-            song={song}
-            onEdit={() => setEditingSong(song)}
-          />
-        ))}
-      </div>
+      <Modal isOpen={createModal.isOpen} onOpenChange={createModal.onOpenChange} size="2xl" scrollBehavior="inside">
+        <ModalContent>
+          {(onClose) => (
+            <form action={createSong} onSubmit={() => onClose()}>
+              <ModalHeader>Crear Canción</ModalHeader>
+              <ModalBody className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input name="title" label="Título" isRequired />
+                  <Input name="artist" label="Artista" isRequired />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <Select name="key" label="Tonalidad" defaultSelectedKeys={['C']}>
+                    {NOTES.map((n) => (
+                      <SelectItem key={n}>{n}</SelectItem>
+                    ))}
+                  </Select>
+                  <Select name="mode" label="Modo" defaultSelectedKeys={['major']}>
+                    {MODES.map((m) => (
+                      <SelectItem key={m}>{m === 'major' ? 'Mayor' : 'Menor'}</SelectItem>
+                    ))}
+                  </Select>
+                  <Input name="year" label="Año" type="number" placeholder="1975" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Select name="genreId" label="Género" isRequired placeholder="Seleccionar...">
+                    {genres.map((g) => (
+                      <SelectItem key={g.id}>{g.name}</SelectItem>
+                    ))}
+                  </Select>
+                  <Select name="progressionId" label="Progresión" isRequired placeholder="Seleccionar...">
+                    {progressions.map((p) => (
+                      <SelectItem key={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </Select>
+                </div>
+                <Select name="difficulty" label="Dificultad" defaultSelectedKeys={['beginner']}>
+                  {DIFFICULTIES.map((d) => (
+                    <SelectItem key={d}>
+                      {d === 'beginner' ? 'Principiante' : d === 'intermediate' ? 'Intermedio' : 'Avanzado'}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Input name="description" label="Descripción" placeholder="Opcional..." />
+                <div className="grid grid-cols-3 gap-4">
+                  <Input name="youtubeId" label="YouTube ID" placeholder="dQw4w9WgXcQ" />
+                  <Input name="startTime" label="Inicio (segundos)" type="number" placeholder="0" />
+                  <Input name="duration" label="Duración (segundos)" type="number" placeholder="30" />
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="bordered" onPress={onClose}>Cancelar</Button>
+                <Button color="danger" type="submit">Crear</Button>
+              </ModalFooter>
+            </form>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Table
+        aria-label="Canciones"
+        classNames={{
+          wrapper: 'bg-card rounded-lg',
+          th: 'bg-transparent text-muted-foreground font-medium text-sm',
+          td: 'py-4',
+        }}
+      >
+        <TableHeader>
+          <TableColumn>Título</TableColumn>
+          <TableColumn>Artista</TableColumn>
+          <TableColumn>Género</TableColumn>
+          <TableColumn>Progresión</TableColumn>
+          <TableColumn>Año</TableColumn>
+          <TableColumn width={120} align="center">Acciones</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {filteredSongs.map((song) => (
+            <TableRow key={song.id}>
+              <TableCell className="font-medium">{song.title}</TableCell>
+              <TableCell>{song.artist}</TableCell>
+              <TableCell>{song.genre.name}</TableCell>
+              <TableCell>
+                <span className="text-muted-foreground text-sm">{song.progression.name}</span>
+              </TableCell>
+              <TableCell>{song.year || '—'}</TableCell>
+              <TableCell>
+                <div className="flex gap-1 justify-center">
+                  <Button variant="light" isIconOnly size="sm" onPress={() => setEditingSong(song)}>
+                    <Pencil className="size-4" />
+                  </Button>
+                  <form action={deleteSong}>
+                    <input type="hidden" name="id" value={song.id} />
+                    <input type="hidden" name="genreId" value={song.genreId} />
+                    <Button type="submit" variant="light" isIconOnly size="sm" className="text-danger">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </form>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       <Modal isOpen={!!editingSong} onOpenChange={(open) => !open && setEditingSong(null)} size="2xl" scrollBehavior="inside">
         <ModalContent>
@@ -491,59 +482,13 @@ function SongsTab({
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button variant="bordered" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button color="primary" type="submit">
-                  Guardar
-                </Button>
+                <Button variant="bordered" onPress={onClose}>Cancelar</Button>
+                <Button color="danger" type="submit">Guardar</Button>
               </ModalFooter>
             </form>
           )}
         </ModalContent>
       </Modal>
     </div>
-  );
-}
-
-function SongCard({ song, onEdit }: { song: SongWithRelations; onEdit: () => void }) {
-  const difficultyColor = song.difficulty === 'beginner' ? 'primary' : song.difficulty === 'intermediate' ? 'secondary' : 'danger';
-
-  return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row justify-between items-start">
-        <div>
-          <p className="font-semibold">{song.title}</p>
-          <p className="text-sm text-muted-foreground">{song.artist}</p>
-        </div>
-        <div className="flex gap-1">
-          <Button variant="light" isIconOnly size="sm" onPress={onEdit}>
-            <Pencil className="size-4" />
-          </Button>
-          <form action={deleteSong}>
-            <input type="hidden" name="id" value={song.id} />
-            <input type="hidden" name="genreId" value={song.genreId} />
-            <Button type="submit" variant="light" isIconOnly size="sm" className="text-danger">
-              <Trash2 className="size-4" />
-            </Button>
-          </form>
-        </div>
-      </CardHeader>
-      <CardBody className="space-y-2">
-        <div className="flex flex-wrap gap-1">
-          <Chip size="sm" color="primary">{song.genre.name}</Chip>
-          <Chip size="sm" variant="bordered">
-            {song.key} {song.mode === 'major' ? 'Mayor' : 'menor'}
-          </Chip>
-          {song.year && <Chip size="sm" variant="flat">{song.year}</Chip>}
-        </div>
-        <div className="text-sm text-muted-foreground">
-          Progresión: {song.progression.name}
-        </div>
-        <Chip color={difficultyColor} size="sm">
-          {song.difficulty === 'beginner' ? 'Principiante' : song.difficulty === 'intermediate' ? 'Intermedio' : 'Avanzado'}
-        </Chip>
-      </CardBody>
-    </Card>
   );
 }

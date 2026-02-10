@@ -20,8 +20,8 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8">Panel de Administración</h1>
+    <div className="container mx-auto py-8 px-4 max-w-7xl">
+      <h1 className="text-3xl font-bold mb-6">Admin — Entrenamiento Auditivo</h1>
       <AdminClient genres={genres} progressions={progressions} songs={songs} />
     </div>
   );
