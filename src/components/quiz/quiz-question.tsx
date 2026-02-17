@@ -13,7 +13,7 @@ import { buildProgression, getRandomKey } from '@/lib/music';
 import { RomanNumeral, Chord } from '@/types/music';
 import { cn } from '@/lib/utils';
 
-const MAJOR_CHORDS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+const MAJOR_CHORDS = ['I', 'bII+', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 const MINOR_CHORDS = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii°'];
 const MAX_ATTEMPTS = 3;
 
@@ -303,5 +303,4 @@ function PianoPlayer({ isPlaying, isReady, onPlay, onStop }: PianoPlayerProps) {
     </div>
   );
 }
-
 

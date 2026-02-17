@@ -30,10 +30,17 @@ const CHORD_INTERVALS: Record<ChordQuality, number[]> = {
   minor7: [0, 3, 7, 10],
 };
 
-// Roman numeral to scale degree and quality (for major keys)
-const MAJOR_KEY_CHORDS: Record<RomanNumeral, { degree: number; quality: ChordQuality }> = {
+type NumeralMapping = {
+  quality: ChordQuality;
+  degree?: number;
+  semitoneOffset?: number;
+};
+
+// Roman numeral to chord mapping. Most entries are diatonic degrees; altered ones use semitone offsets.
+const MAJOR_KEY_CHORDS: Record<RomanNumeral, NumeralMapping> = {
   'I': { degree: 0, quality: 'major' },
   'i': { degree: 0, quality: 'minor' },
+  'bII+': { semitoneOffset: 1, quality: 'augmented' },
   'II': { degree: 1, quality: 'major' },
   'ii': { degree: 1, quality: 'minor' },
   'III': { degree: 2, quality: 'major' },
@@ -105,13 +112,16 @@ export function buildChordFromNumeral(
   octave: number = 4
 ): Chord {
   const scaleNotes = getScaleNotes(key, mode);
-  const { degree, quality } = MAJOR_KEY_CHORDS[numeral];
-  const root = scaleNotes[degree];
+  const mapping = MAJOR_KEY_CHORDS[numeral];
+
+  const root = mapping.semitoneOffset !== undefined
+    ? transposeNote(key, mapping.semitoneOffset)
+    : scaleNotes[mapping.degree!];
 
   return {
     root,
-    quality,
-    notes: getChordNotes(root, quality, octave),
+    quality: mapping.quality,
+    notes: getChordNotes(root, mapping.quality, octave),
   };
 }
 

@@ -1,0 +1,67 @@
+[
+  {
+    "id": "silvestre-mendez-son-de-mayari-guantanamo-0",
+    "title": "Son De Mayari Guantanamo",
+    "artist": "Silvestre Méndez Y Su Conjunto",
+    "youtube": "https://www.youtube.com/watch?v=IqgLwlGt1Vk",
+    "startTime": 0,
+    "duration": 18,
+    "key": "A",
+    "mode": "minor",
+    "difficulty": "beginner",
+    "genreId": "salsa",
+    "progressionId": "i-VII-VI-V"
+  },
+  {
+    "id": "ismael-rivera-traigo-salsa-0",
+    "title": "Traigo Salsa",
+    "artist": "Ismael Rivera",
+    "youtube": "https://www.youtube.com/watch?v=B65B5A0naco&t=10s",
+    "startTime": 0,
+    "duration": 11,
+    "key": "G",
+    "mode": "minor",
+    "difficulty": "beginner",
+    "genreId": "salsa",
+    "progressionId": "i-iv-i-V"
+  },
+  {
+    "id": "ismael-rivera-traigo-salsa-73",
+    "title": "Traigo Salsa",
+    "artist": "Ismael Rivera",
+    "youtube": "https://www.youtube.com/watch?v=B65B5A0naco&t=10s",
+    "startTime": 73,
+    "duration": 14,
+    "key": "G",
+    "mode": "minor",
+    "difficulty": "beginner",
+    "genreId": "salsa",
+    "progressionId": "i-iv-V-iv"
+  },
+  {
+    "id": "chorolo-y-su-combo-guajira-boogaloo-3",
+    "title": "Guajira Boogaloo",
+    "artist": "Chorolo y su Combo",
+    "youtube": "https://www.youtube.com/watch?v=qoEFCJtxz5M",
+    "startTime": 3,
+    "duration": 23,
+    "key": "Ab",
+    "mode": "minor",
+    "difficulty": "beginner",
+    "genreId": "salsa",
+    "progressionId": "i-iv-V-iv"
+  },
+  {
+    "id": "chorolo-y-su-combo-descarga-atomica-0",
+    "title": "Descarga Atómica",
+    "artist": "Chorolo y su Combo",
+    "youtube": "https://www.youtube.com/watch?v=A0rxUV_LrVM",
+    "startTime": 0,
+    "duration": 12,
+    "key": "C",
+    "mode": "major",
+    "difficulty": "beginner",
+    "genreId": "salsa",
+    "progressionId": "I-bII-plus"
+  }
+]

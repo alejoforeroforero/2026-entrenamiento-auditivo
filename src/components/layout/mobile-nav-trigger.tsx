@@ -11,8 +11,18 @@ export function MobileNavTrigger() {
 
   if (!genre || !genreLabel) return null;
 
+  const progressionPath = (progressionId: string) =>
+    `/${genre}/progresiones/${encodeURIComponent(progressionId)}`;
+  const normalizedPathname = (() => {
+    try {
+      return decodeURIComponent(pathname);
+    } catch {
+      return pathname;
+    }
+  })();
+
   const activeProgression = progressions.find(
-    (p) => pathname === `/${genre}/progresiones/${p.id}`
+    (p) => pathname === progressionPath(p.id) || normalizedPathname === `/${genre}/progresiones/${p.id}`
   );
 
   const displayText = activeProgression?.name || 'Progresiones';

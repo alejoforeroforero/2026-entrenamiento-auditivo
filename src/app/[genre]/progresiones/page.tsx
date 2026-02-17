@@ -10,7 +10,7 @@ export default async function ProgresionesPage({
   const progressions = await getProgressionsForGenre(genre);
 
   if (progressions.length > 0) {
-    redirect(`/${genre}/progresiones/${progressions[0].id}`);
+    redirect(`/${genre}/progresiones/${encodeURIComponent(progressions[0].id)}`);
   }
 
   return (

@@ -132,7 +132,7 @@ export function EstadisticasClient({ stats }: EstadisticasClientProps) {
                   {stats.mostMissedProgressions.map((item) => (
                     <Link
                       key={item.progressionId}
-                      href={`/${item.genreId}/progresiones/${item.progressionId}`}
+                      href={`/${item.genreId}/progresiones/${encodeURIComponent(item.progressionId)}`}
                       className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group"
                     >
                       <span className="font-medium group-hover:text-primary transition-colors">{item.name}</span>

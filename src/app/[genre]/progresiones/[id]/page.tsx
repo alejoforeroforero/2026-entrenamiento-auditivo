@@ -11,16 +11,25 @@ async function getProgressionById(id: string) {
   });
 }
 
+function normalizeProgressionId(rawId: string): string {
+  try {
+    return decodeURIComponent(rawId).replace(/ /g, '+');
+  } catch {
+    return rawId.replace(/ /g, '+');
+  }
+}
+
 export default async function ProgressionPage({
   params,
 }: {
   params: Promise<{ genre: string; id: string }>;
 }) {
   const { genre, id } = await params;
+  const normalizedId = normalizeProgressionId(id);
 
   const [progression, songs, session] = await Promise.all([
-    getProgressionById(id),
-    getSongsForProgressionInGenre(id, genre),
+    getProgressionById(normalizedId),
+    getSongsForProgressionInGenre(normalizedId, genre),
     auth(),
   ]);
 

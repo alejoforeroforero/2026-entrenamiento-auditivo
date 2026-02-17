@@ -1,0 +1,23 @@
+[
+  {
+    "id": "ismael-las-caras-lindas",
+    "title": "Las Caras Lindas",
+    "artist": "Ismael Rivera",
+    "youtube": "https://www.youtube.com/watch?v=t9gsjztx3f8",
+    "startTime": 0,
+    "duration": 11
+  },
+  {
+    "title": "El Cantante",
+    "artist": "Hector Lavoe",
+    "youtube": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "startTime": 0,
+    "duration": 12,
+    "key": "G",
+    "mode": "minor",
+    "difficulty": "intermediate",
+    "genreId": "salsa",
+    "progressionId": "i-VII-VI-V",
+    "description": "Completa este registro con el ID real de YouTube."
+  }
+]

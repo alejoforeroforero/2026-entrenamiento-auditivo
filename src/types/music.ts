@@ -16,7 +16,7 @@ export interface Chord {
 }
 
 // Roman numeral analysis
-export type RomanNumeral = 'I' | 'i' | 'II' | 'ii' | 'III' | 'iii' | 'IV' | 'iv' | 'V' | 'v' | 'VI' | 'vi' | 'VII' | 'vii' | 'viio';
+export type RomanNumeral = 'I' | 'i' | 'bII+' | 'II' | 'ii' | 'III' | 'iii' | 'IV' | 'iv' | 'V' | 'v' | 'VI' | 'vi' | 'VII' | 'vii' | 'viio';
 
 // Progression
 export interface Progression {

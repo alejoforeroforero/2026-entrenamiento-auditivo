@@ -16,7 +16,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:backfill-youtube": "tsx scripts/backfill-youtube.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

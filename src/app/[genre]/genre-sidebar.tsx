@@ -49,8 +49,18 @@ export function GenreSidebar({
     {} as Record<Difficulty, ProgressionItem[]>
   );
 
+  const progressionPath = (progressionId: string) =>
+    `/${genre}/progresiones/${encodeURIComponent(progressionId)}`;
+  const normalizedPathname = (() => {
+    try {
+      return decodeURIComponent(pathname);
+    } catch {
+      return pathname;
+    }
+  })();
+
   const activeProgression = progressions.find(
-    (p) => pathname === `/${genre}/progresiones/${p.id}`
+    (p) => pathname === progressionPath(p.id) || normalizedPathname === `/${genre}/progresiones/${p.id}`
   );
   const defaultOpenLevel = activeProgression?.difficulty || 'beginner';
 
@@ -107,11 +117,12 @@ export function GenreSidebar({
                 >
                   <nav className="space-y-1">
                     {items.map((progression) => {
-                      const isActive = pathname === `/${genre}/progresiones/${progression.id}`;
+                      const path = progressionPath(progression.id);
+                      const isActive = pathname === path || normalizedPathname === `/${genre}/progresiones/${progression.id}`;
                       return (
                         <Link
                           key={progression.id}
-                          href={`/${genre}/progresiones/${progression.id}`}
+                          href={path}
                           className={cn(
                             'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all',
                             isActive

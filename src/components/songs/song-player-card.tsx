@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useId } from 'react';
 import Link from 'next/link';
 import { Play, Pause, Music } from 'lucide-react';
 import { Card, CardBody, Chip } from '@heroui/react';
 import { FavoriteButton } from '@/components/favorites/favorite-button';
+import {
+  registerYouTubePlayback,
+  unregisterYouTubePlayback,
+  requestYouTubePlayback,
+  releaseYouTubePlayback,
+} from '@/lib/audio/youtube-playback-manager';
 
 declare global {
   interface Window {
@@ -79,36 +85,19 @@ export function SongPlayerCard({
   const shouldStartTimerRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const playerId = `player-${song.id}`;
+  const instanceId = useId().replace(/:/g, '');
+  const playbackId = `song-${song.id}-${instanceId}`;
+  const playerId = `player-${song.id}-${instanceId}`;
 
-  useEffect(() => {
-    if (window.YT) {
-      initPlayer();
-      return;
+  const clearPlaybackTimer = useCallback(() => {
+    shouldStartTimerRef.current = false;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
-
-    if (!document.getElementById('youtube-api')) {
-      const tag = document.createElement('script');
-      tag.id = 'youtube-api';
-      tag.src = 'https://www.youtube.com/iframe_api';
-      tag.async = true;
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-    }
-
-    const previousCallback = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      previousCallback?.();
-      initPlayer();
-    };
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      playerRef.current?.destroy();
-    };
   }, []);
 
-  const initPlayer = () => {
+  const initPlayer = useCallback(() => {
     if (!window.YT || !containerRef.current || !song.youtubeId) return;
 
     if (!document.getElementById(playerId)) {
@@ -134,10 +123,10 @@ export function SongPlayerCard({
         },
         onStateChange: (event) => {
           if (event.data === window.YT.PlayerState.PLAYING) {
+            requestYouTubePlayback(playbackId);
             setIsPlaying(true);
             if (shouldStartTimerRef.current) {
-              shouldStartTimerRef.current = false;
-              if (timerRef.current) clearTimeout(timerRef.current);
+              clearPlaybackTimer();
               timerRef.current = setTimeout(() => {
                 playerRef.current?.pauseVideo();
                 setIsPlaying(false);
@@ -147,29 +136,72 @@ export function SongPlayerCard({
             event.data === window.YT.PlayerState.PAUSED ||
             event.data === window.YT.PlayerState.ENDED
           ) {
+            clearPlaybackTimer();
+            releaseYouTubePlayback(playbackId);
             setIsPlaying(false);
           }
         },
       },
     });
-  };
+  }, [clearPlaybackTimer, playbackId, playerId, song.duration, song.startTime, song.youtubeId]);
+
+  useEffect(() => {
+    const pausePlayback = () => {
+      playerRef.current?.pauseVideo();
+      clearPlaybackTimer();
+      setIsPlaying(false);
+      releaseYouTubePlayback(playbackId);
+    };
+
+    registerYouTubePlayback(playbackId, pausePlayback);
+
+    return () => {
+      unregisterYouTubePlayback(playbackId);
+    };
+  }, [clearPlaybackTimer, playbackId]);
+
+  useEffect(() => {
+    if (window.YT) {
+      initPlayer();
+      return;
+    }
+
+    if (!document.getElementById('youtube-api')) {
+      const tag = document.createElement('script');
+      tag.id = 'youtube-api';
+      tag.src = 'https://www.youtube.com/iframe_api';
+      tag.async = true;
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+
+    const previousCallback = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      previousCallback?.();
+      initPlayer();
+    };
+
+    return () => {
+      clearPlaybackTimer();
+      releaseYouTubePlayback(playbackId);
+      playerRef.current?.destroy();
+    };
+  }, [clearPlaybackTimer, initPlayer, playbackId]);
 
   const handlePlay = useCallback(() => {
     if (!playerRef.current || !isPlayerReady) return;
 
     if (isPlaying) {
       playerRef.current.pauseVideo();
-      shouldStartTimerRef.current = false;
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
+      clearPlaybackTimer();
+      releaseYouTubePlayback(playbackId);
     } else {
+      requestYouTubePlayback(playbackId);
       shouldStartTimerRef.current = true;
       playerRef.current.seekTo(song.startTime || 0, true);
       playerRef.current.playVideo();
     }
-  }, [isPlaying, isPlayerReady, song.startTime]);
+  }, [clearPlaybackTimer, isPlaying, isPlayerReady, playbackId, song.startTime]);
 
   return (
     <Card
@@ -230,7 +262,7 @@ export function SongPlayerCard({
 
         {showProgression && progression && genre && (
           <Link
-            href={`/${genre.id}/progresiones/${progression.id}`}
+            href={`/${genre.id}/progresiones/${encodeURIComponent(progression.id)}`}
             className="flex items-center gap-3 mt-3 pt-3 border-t border-divider group"
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">

@@ -14,7 +14,7 @@ import {
   getProgressionByIdAction,
 } from './actions';
 
-const majorChords = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+const majorChords = ['I', 'bII+', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 const minorChords = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii°'];
 
 declare global {

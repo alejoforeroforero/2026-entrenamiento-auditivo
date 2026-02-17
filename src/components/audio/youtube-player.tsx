@@ -1,7 +1,13 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useId } from 'react';
 import { Play, Pause } from 'lucide-react';
+import {
+  registerYouTubePlayback,
+  unregisterYouTubePlayback,
+  requestYouTubePlayback,
+  releaseYouTubePlayback,
+} from '@/lib/audio/youtube-playback-manager';
 
 declare global {
   interface Window {
@@ -62,36 +68,19 @@ export function YouTubePlayer({
   const shouldStartTimerRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const playerId = `player-${youtubeId}`;
+  const instanceId = useId().replace(/:/g, '');
+  const playbackId = `youtube-${youtubeId}-${instanceId}`;
+  const playerId = `player-${youtubeId}-${instanceId}`;
 
-  useEffect(() => {
-    if (window.YT) {
-      initPlayer();
-      return;
+  const clearPlaybackTimer = useCallback(() => {
+    shouldStartTimerRef.current = false;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
-
-    if (!document.getElementById('youtube-api')) {
-      const tag = document.createElement('script');
-      tag.id = 'youtube-api';
-      tag.src = 'https://www.youtube.com/iframe_api';
-      tag.async = true;
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-    }
-
-    const previousCallback = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      previousCallback?.();
-      initPlayer();
-    };
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      playerRef.current?.destroy();
-    };
   }, []);
 
-  const initPlayer = () => {
+  const initPlayer = useCallback(() => {
     if (!window.YT || !containerRef.current || !youtubeId) return;
 
     if (!document.getElementById(playerId)) {
@@ -117,10 +106,10 @@ export function YouTubePlayer({
         },
         onStateChange: (event) => {
           if (event.data === window.YT.PlayerState.PLAYING) {
+            requestYouTubePlayback(playbackId);
             setIsPlaying(true);
             if (shouldStartTimerRef.current) {
-              shouldStartTimerRef.current = false;
-              if (timerRef.current) clearTimeout(timerRef.current);
+              clearPlaybackTimer();
               timerRef.current = setTimeout(() => {
                 playerRef.current?.pauseVideo();
                 setIsPlaying(false);
@@ -130,29 +119,72 @@ export function YouTubePlayer({
             event.data === window.YT.PlayerState.PAUSED ||
             event.data === window.YT.PlayerState.ENDED
           ) {
+            clearPlaybackTimer();
+            releaseYouTubePlayback(playbackId);
             setIsPlaying(false);
           }
         },
       },
     });
-  };
+  }, [clearPlaybackTimer, duration, playbackId, playerId, startTime, youtubeId]);
+
+  useEffect(() => {
+    const pausePlayback = () => {
+      playerRef.current?.pauseVideo();
+      clearPlaybackTimer();
+      setIsPlaying(false);
+      releaseYouTubePlayback(playbackId);
+    };
+
+    registerYouTubePlayback(playbackId, pausePlayback);
+
+    return () => {
+      unregisterYouTubePlayback(playbackId);
+    };
+  }, [clearPlaybackTimer, playbackId]);
+
+  useEffect(() => {
+    if (window.YT) {
+      initPlayer();
+      return;
+    }
+
+    if (!document.getElementById('youtube-api')) {
+      const tag = document.createElement('script');
+      tag.id = 'youtube-api';
+      tag.src = 'https://www.youtube.com/iframe_api';
+      tag.async = true;
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+
+    const previousCallback = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      previousCallback?.();
+      initPlayer();
+    };
+
+    return () => {
+      clearPlaybackTimer();
+      releaseYouTubePlayback(playbackId);
+      playerRef.current?.destroy();
+    };
+  }, [clearPlaybackTimer, initPlayer, playbackId]);
 
   const handlePlay = useCallback(() => {
     if (!playerRef.current || !isPlayerReady) return;
 
     if (isPlaying) {
       playerRef.current.pauseVideo();
-      shouldStartTimerRef.current = false;
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
+      clearPlaybackTimer();
+      releaseYouTubePlayback(playbackId);
     } else {
+      requestYouTubePlayback(playbackId);
       shouldStartTimerRef.current = true;
       playerRef.current.seekTo(startTime, true);
       playerRef.current.playVideo();
     }
-  }, [isPlaying, isPlayerReady, startTime]);
+  }, [clearPlaybackTimer, isPlaying, isPlayerReady, playbackId, startTime]);
 
   return (
     <div className={`p-3 sm:p-4 rounded-xl bg-card/50 border border-border/50 ${className}`}>
